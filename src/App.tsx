@@ -132,12 +132,12 @@ function App() {
             <p className="text-indigo-300 font-medium animate-pulse">Viajando pelo universo bíblico...</p>
           </div>
         ) : (
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full w-full">
             <div className="flex-none pt-2 pb-4 z-10">
               <DayNavigator />
             </div>
 
-            <div className="flex-1 flex items-start justify-center">
+            <div className="flex-1 flex items-start justify-center w-full">
               <VerseCard onNewVerse={loadNewVerse} />
             </div>
           </div>

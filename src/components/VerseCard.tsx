@@ -121,7 +121,7 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-slate-900/90 backdrop-blur-sm border border-indigo-500/30 rounded-3xl shadow-2xl p-6 md:p-8 max-w-2xl mx-auto w-full relative overflow-hidden text-slate-100"
+      className="bg-slate-900/90 backdrop-blur-sm border border-indigo-500/30 rounded-3xl shadow-2xl p-4 md:p-8 max-w-2xl mx-auto w-full relative overflow-hidden text-slate-100"
     >
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-pink-500 to-indigo-500 z-20" />
 
