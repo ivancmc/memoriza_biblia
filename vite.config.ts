@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg'],
+        includeAssets: ['favicon.png'],
         manifest: {
           name: 'MemorizaBíblia',
           short_name: 'MemorizaBíblia',
@@ -22,19 +22,19 @@ export default defineConfig(({ mode }) => {
           display: 'standalone',
           icons: [
             {
-              src: 'icon.svg',
+              src: 'favicon.png',
               sizes: '192x192',
-              type: 'image/svg+xml'
+              type: 'image/png'
             },
             {
-              src: 'icon.svg',
+              src: 'favicon.png',
               sizes: '512x512',
-              type: 'image/svg+xml'
+              type: 'image/png'
             },
             {
-              src: 'icon.svg',
+              src: 'favicon.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
+              type: 'image/png',
               purpose: 'any maskable'
             }
           ]
