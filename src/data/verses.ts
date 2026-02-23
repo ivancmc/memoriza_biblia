@@ -1206,7 +1206,7 @@ export const offlineVerses: Verse[] = [
     explanation: "Deus me conhece por dentro e por fora, melhor do que qualquer pessoa.",
     bookContext: "Davi maravilhado com o quanto Deus sabe sobre ele.",
     keywords: ["sondaste", "conheces", "Senhor"],
-    emojiText: "👑, 🫵 me 🔍, e me 🧠.",
+    emojiText: "👑, tu me 🔍, e me 🧠.",
     scrambled: ["sondaste", "me", "Senhor", "conheces", "tu", "me", "e"],
     fakeReferences: ["Salmos 139:23", "Jeremias 17:10"],
     isFallback: true

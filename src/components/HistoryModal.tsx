@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, BookOpen, Calendar, ChevronDown, Save } from 'lucide-react';
+import { X, BookOpen, Calendar, ChevronDown } from 'lucide-react';
 import { useStore, Verse } from '../store';
 
 interface HistoryModalProps {
@@ -9,24 +9,10 @@ interface HistoryModalProps {
 }
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) => {
-  const { history, updateNotes } = useStore();
+  const { history } = useStore();
   const [expandedVerse, setExpandedVerse] = useState<string | null>(null);
-  const [note, setNote] = useState('');
 
-  useEffect(() => {
-    if (expandedVerse) {
-      const verse = history.find(v => v.reference === expandedVerse);
-      setNote(verse?.notes || '');
-    } else {
-      setNote('');
-    }
-  }, [expandedVerse, history]);
 
-  const handleSaveNote = () => {
-    if (expandedVerse) {
-      updateNotes(expandedVerse, note);
-    }
-  };
 
   return (
     <AnimatePresence>
@@ -39,7 +25,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
             onClick={onClose}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
-          
+
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -81,8 +67,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                         transition={{ delay: index * 0.05, layout: { duration: 0.3 } }}
                         className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-5 overflow-hidden"
                       >
-                        <div 
-                          className="flex justify-between items-center cursor-pointer" 
+                        <div
+                          className="flex justify-between items-center cursor-pointer"
                           onClick={() => setExpandedVerse(isExpanded ? null : verse.reference)}
                         >
                           <h3 className="text-lg font-bold text-yellow-400">{verse.reference}</h3>
@@ -99,28 +85,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                               transition={{ duration: 0.3 }}
                             >
                               <p className="text-slate-200 font-serif leading-relaxed">"{verse.text}"</p>
-                              {verse.bookContext && (
-                                <p className="text-xs text-indigo-400 mt-3 italic border-t border-indigo-500/20 pt-2">
-                                  {verse.bookContext}
-                                </p>
-                              )}
-                              <div className="mt-4 pt-4 border-t border-indigo-500/20">
-                                <h4 className="text-sm font-bold text-yellow-400 mb-2">Minhas Anotações</h4>
-                                <textarea 
-                                  className="w-full bg-indigo-950/20 border border-indigo-500/30 rounded-lg p-2 text-slate-200 text-sm focus:ring-yellow-400 focus:border-yellow-400 transition"
-                                  rows={3}
-                                  value={note}
-                                  onChange={(e) => setNote(e.target.value)}
-                                  placeholder="Escreva seus pensamentos sobre este versículo..."
-                                />
-                                <button 
-                                  onClick={handleSaveNote}
-                                  className="mt-2 w-full flex items-center justify-center gap-2 bg-yellow-500 text-slate-900 px-4 py-2 rounded-lg font-bold hover:bg-yellow-400 transition-colors text-sm"
-                                >
-                                  <Save size={16} />
-                                  Salvar Anotação
-                                </button>
-                              </div>
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -130,7 +94,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                 </div>
               )}
             </div>
-            
+
             {/* Footer Decoration */}
             <div className="h-1.5 w-full bg-gradient-to-r from-yellow-400 via-pink-500 to-indigo-500" />
           </motion.div>

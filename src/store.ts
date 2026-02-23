@@ -12,7 +12,6 @@ export interface Verse {
   scrambled: string[]; // Words in random order
   fakeReferences: string[]; // Incorrect references for multiple choice
   isFallback?: boolean;
-  notes?: string;
 }
 
 interface AppState {
@@ -29,7 +28,6 @@ interface AppState {
   addToHistory: (verse: Verse) => void;
   setLoading: (loading: boolean) => void;
   resetProgress: () => void;
-  updateNotes: (reference: string, notes: string) => void;
   clearLastUnlockedAchievement: () => void;
 }
 
@@ -73,7 +71,7 @@ export const useStore = create<AppState>()(
           checkAchievement(10, '10_verses');
           checkAchievement(25, '25_verses');
 
-          return { 
+          return {
             history: newHistory,
             unlockedAchievements: newAchievements,
             lastUnlockedAchievement: lastUnlocked
@@ -81,12 +79,6 @@ export const useStore = create<AppState>()(
         }),
       setLoading: (loading) => set({ isLoading: loading }),
       resetProgress: () => set({ currentDay: 1, completedDays: [] }),
-      updateNotes: (reference, notes) =>
-        set((state) => ({
-          history: state.history.map((v) =>
-            v.reference === reference ? { ...v, notes } : v
-          ),
-        })),
       clearLastUnlockedAchievement: () => set({ lastUnlockedAchievement: null }),
     }),
     {
