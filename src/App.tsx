@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import { SurpriseVerseModal } from './components/SurpriseVerseModal';
+import { RecallVerseModal } from './components/RecallVerseModal';
 import { AchievementsModal, achievements } from './components/AchievementsModal';
 import { useStore, Verse } from './store';
 import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
-import { BookOpen, RefreshCw, History, Gift, Award } from 'lucide-react';
+import { BookOpen, RefreshCw, History, Sparkles, Award } from 'lucide-react';
 import { motion } from 'motion/react';
 import { HistoryModal } from './components/HistoryModal';
 import ReminderManager from './components/ReminderManager';
@@ -15,12 +15,12 @@ function App() {
   const { currentVerse, setVerse, isLoading, setLoading, resetProgress, history, lastUnlockedAchievement, clearLastUnlockedAchievement } = useStore();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
-  const [surpriseVerse, setSurpriseVerse] = useState<Verse | null>(null);
+  const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
 
-  const handleSurpriseMe = () => {
+  const handleRecall = () => {
     if (history.length > 0) {
       const randomIndex = Math.floor(Math.random() * history.length);
-      setSurpriseVerse(history[randomIndex]);
+      setRecallVerse(history[randomIndex]);
     }
   };
 
@@ -79,11 +79,11 @@ function App() {
           <div className="flex items-center gap-4">
             {history.length > 0 && (
               <button
-                onClick={handleSurpriseMe}
+                onClick={handleRecall}
                 className="text-sm font-medium text-yellow-300 hover:text-white flex items-center gap-1 transition-colors"
               >
-                <Gift size={20} />
-                <span className="hidden sm:inline">Surpreenda-me!</span>
+                <Sparkles size={20} />
+                <span className="hidden sm:inline">Relembre</span>
               </button>
             )}
             <ReminderManager />
@@ -135,7 +135,7 @@ function App() {
       </main>
 
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
-      <SurpriseVerseModal verse={surpriseVerse} onClose={() => setSurpriseVerse(null)} />
+      <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
       <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
 
       {/* Footer Decoration */}
