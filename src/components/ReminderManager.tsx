@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, Settings } from 'lucide-react';
+import ReminderTimeModal from './ReminderTimeModal';
 
 const REMINDER_STORAGE_KEY = 'memorizakids_reminder_scheduled';
+const REMINDER_CONFIG_KEY = 'memorizakids_reminder_config';
 
 const ReminderManager = () => {
   const [permission, setPermission] = useState('default');
   const [isRequesting, setIsRequesting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reminderConfig, setReminderConfig] = useState(() => {
+    const saved = localStorage.getItem(REMINDER_CONFIG_KEY);
+    return saved ? JSON.parse(saved) : { hour: 9, minute: 0 };
+  });
 
   const showReminderNotification = () => {
     const notification = new Notification('Hora de praticar! 🧠', {
@@ -18,14 +25,20 @@ const ReminderManager = () => {
     };
   };
 
-  const scheduleNextReminder = () => {
+  const scheduleNextReminder = (config = reminderConfig) => {
     const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
-    tomorrow.setHours(9, 0, 0, 0); // Agenda para as 9h de amanhã
+    const next = new Date(now);
 
-    localStorage.setItem(REMINDER_STORAGE_KEY, tomorrow.toISOString());
-    console.log(`Lembrete agendado para: ${tomorrow.toLocaleString()}`);
+    // Configura para o horário definido (hoje)
+    next.setHours(config.hour, config.minute, 0, 0);
+
+    // Se o horário já passou hoje, agenda para amanhã
+    if (next <= now) {
+      next.setDate(now.getDate() + 1);
+    }
+
+    localStorage.setItem(REMINDER_STORAGE_KEY, next.toISOString());
+    console.log(`Lembrete agendado para: ${next.toLocaleString()}`);
   };
 
   useEffect(() => {
@@ -47,11 +60,11 @@ const ReminderManager = () => {
 
   const handleGrantedPermission = () => {
     new Notification('Lembretes ativados! ✅', {
-      body: 'Você receberá sua primeira notificação amanhã às 9h.',
+      body: `Você receberá sua primeira notificação no horário definido (${reminderConfig.hour.toString().padStart(2, '0')}:${reminderConfig.minute.toString().padStart(2, '0')}).`,
     });
 
-    alert('Lembretes diários ativados! Você receberá uma notificação todos os dias para praticar.');
     scheduleNextReminder();
+    setIsModalOpen(true); // Abre o modal logo após ativar para deixar o usuário escolher o horário
   };
 
   const requestPermission = async () => {
@@ -96,10 +109,20 @@ const ReminderManager = () => {
     if (permission === 'default') {
       requestPermission();
     } else if (permission === 'granted') {
-      alert('Os lembretes já estão ativados. Para desativar, gerencie as permissões de notificação nas configurações do seu navegador.');
+      setIsModalOpen(true);
     } else if (permission === 'denied') {
       alert('As notificações estão bloqueadas. Para ativar, mude as permissões nas configurações do seu navegador.');
     }
+  };
+
+  const handleSaveTime = (hour: number, minute: number) => {
+    const newConfig = { hour, minute };
+    setReminderConfig(newConfig);
+    localStorage.setItem(REMINDER_CONFIG_KEY, JSON.stringify(newConfig));
+    scheduleNextReminder(newConfig);
+    setIsModalOpen(false);
+
+    alert(`Ótimo! Agora você receberá lembretes todos os dias às ${hour.toString().padStart(2, '0')}h${minute.toString().padStart(2, '0')}m.`);
   };
 
   const getButtonState = () => {
@@ -132,14 +155,34 @@ const ReminderManager = () => {
   const { Icon, text, className } = getButtonState();
 
   return (
-    <button
-      onClick={handleToggleReminders}
-      disabled={permission === 'denied' || isRequesting}
-      className={`text-sm font-medium flex items-center gap-1 transition-colors ${className}`}
-    >
-      <Icon size={20} />
-      <span className="hidden sm:inline">{text}</span>
-    </button>
+    <>
+      <button
+        onClick={handleToggleReminders}
+        disabled={permission === 'denied' || isRequesting}
+        className={`group text-sm font-medium flex items-center gap-1 transition-all ${className}`}
+        title={permission === 'granted' ? "Ajustar horário do lembrete" : ""}
+      >
+        <div className="relative">
+          <Icon size={20} />
+          {permission === 'granted' && (
+            <div className="absolute -top-1 -right-1 bg-indigo-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Settings size={8} className="text-white" />
+            </div>
+          )}
+        </div>
+        <span className="hidden sm:inline">
+          {permission === 'granted' ? `${reminderConfig.hour.toString().padStart(2, '0')}:${reminderConfig.minute.toString().padStart(2, '0')}` : text}
+        </span>
+      </button>
+
+      <ReminderTimeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveTime}
+        initialHour={reminderConfig.hour}
+        initialMinute={reminderConfig.minute}
+      />
+    </>
   );
 };
 
