@@ -10,12 +10,22 @@ import { BookOpen, RefreshCw, History, Sparkles, Award } from 'lucide-react';
 import { motion } from 'motion/react';
 import { HistoryModal } from './components/HistoryModal';
 import ReminderManager from './components/ReminderManager';
+import { usePWAInstall } from './hooks/usePWAInstall';
+import InstallPromptModal from './components/InstallPromptModal';
 
 function App() {
   const { currentVerse, setVerse, isLoading, setLoading, resetProgress, history, lastUnlockedAchievement, clearLastUnlockedAchievement } = useStore();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
+  const { isInstallAvailable, handleInstallClick } = usePWAInstall();
+  const [showInstallModal, setShowInstallModal] = useState(false);
+
+  useEffect(() => {
+    if (isInstallAvailable) {
+      setShowInstallModal(true);
+    }
+  }, [isInstallAvailable]);
 
   const handleRecall = () => {
     if (history.length > 0) {
@@ -73,7 +83,7 @@ function App() {
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-yellow-400">
             <BookOpen size={28} strokeWidth={2.5} />
-            <h1 className="text-xl font-bold tracking-tight text-white">MemorizaKids</h1>
+            <h1 className="text-xl font-bold tracking-tight text-white">MemorizaBíblia</h1>
           </div>
 
           <div className="flex items-center gap-4">
@@ -137,6 +147,11 @@ function App() {
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
       <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
       <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
+      <InstallPromptModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        onInstall={handleInstallClick}
+      />
 
       {/* Footer Decoration */}
       <div className="fixed bottom-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-pink-500 to-indigo-500" />
