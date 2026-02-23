@@ -1,15 +1,16 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Square } from 'lucide-react';
 import { Verse } from '@/src/store';
 
 interface Day1ActivityProps {
   verse: Verse;
   onComplete: () => void;
   onSpeak: () => void;
+  isSpeaking: boolean;
 }
 
-const Day1Activity: React.FC<Day1ActivityProps> = ({ verse, onComplete, onSpeak }) => {
+const Day1Activity: React.FC<Day1ActivityProps> = ({ verse, onComplete, onSpeak, isSpeaking }) => {
   return (
     <div className="text-center space-y-4 md:space-y-6">
       <h2 className="text-xl md:text-2xl font-bold text-yellow-400 mb-2">Dia 1: Vamos Conhecer!</h2>
@@ -17,18 +18,19 @@ const Day1Activity: React.FC<Day1ActivityProps> = ({ verse, onComplete, onSpeak 
         "{verse.text}"
       </p>
       <p className="text-base md:text-lg text-indigo-300 font-semibold mt-2">{verse.reference}</p>
-      
+
       <div className="flex flex-col gap-3 items-center mt-6">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onSpeak}
-          className="bg-indigo-800 text-indigo-200 px-6 py-3 rounded-full flex items-center gap-2 font-bold hover:bg-indigo-700 transition-colors w-full max-w-xs justify-center"
+          className={`${isSpeaking ? 'bg-red-800 text-red-200 hover:bg-red-700' : 'bg-indigo-800 text-indigo-200 hover:bg-indigo-700'
+            } px-6 py-3 rounded-full flex items-center gap-2 font-bold transition-colors w-full max-w-xs justify-center`}
         >
-          <Volume2 size={24} />
-          Ouvir Versículo
+          {isSpeaking ? <Square size={24} fill="currentColor" /> : <Volume2 size={24} />}
+          {isSpeaking ? 'Parar Áudio' : 'Ouvir Versículo'}
         </motion.button>
-        
+
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

@@ -26,6 +26,8 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
   const [referenceSolved, setReferenceSolved] = useState(false);
   const [referenceOptions, setReferenceOptions] = useState<string[]>([]);
 
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   useEffect(() => {
     setUserInput('');
     setSelectedWords([]);
@@ -33,7 +35,9 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
     setIsCorrect(false);
     setError(null);
     setReferenceSolved(false);
-    
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+
     if (currentVerse) {
       if (currentDay === 3) {
         // Setup Reference Quiz for Day 3
@@ -60,16 +64,34 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
   };
 
   const speakText = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
     const utterance = new SpeechSynthesisUtterance(currentVerse.text);
     utterance.lang = 'pt-BR';
     utterance.rate = 0.9;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
     window.speechSynthesis.speak(utterance);
   };
 
   const renderContent = () => {
     switch (currentDay) {
       case 1: // Leitura e Escuta
-        return <Day1Activity verse={currentVerse} onComplete={handleComplete} onSpeak={speakText} />;
+        return (
+          <Day1Activity
+            verse={currentVerse}
+            onComplete={handleComplete}
+            onSpeak={speakText}
+            isSpeaking={isSpeaking}
+          />
+        );
 
       case 2: // Explicação
         return <Day2Activity verse={currentVerse} onComplete={handleComplete} />;
@@ -102,7 +124,7 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
       className="bg-slate-900/90 backdrop-blur-sm border border-indigo-500/30 rounded-3xl shadow-2xl p-6 md:p-8 max-w-2xl mx-auto w-full relative overflow-hidden text-slate-100"
     >
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-pink-500 to-indigo-500 z-20" />
-      
+
       <div className="relative z-10 flex flex-col justify-center h-full">
         <AnimatePresence mode="wait">
           <motion.div
@@ -131,12 +153,12 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
             >
               <Star size={currentDay === 7 ? 100 : 80} className="text-yellow-400 mx-auto drop-shadow-lg" fill="currentColor" />
             </motion.div>
-            
+
             {currentDay === 7 ? (
               <>
                 <h3 className="text-3xl md:text-4xl font-bold text-white mt-6 mb-2">Incrível!</h3>
                 <p className="text-indigo-200 text-lg mb-8">Você memorizou o versículo da semana!</p>
-                
+
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
