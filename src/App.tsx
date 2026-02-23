@@ -27,7 +27,8 @@ function App() {
   const loadNewVerse = async () => {
     setLoading(true);
     try {
-      const verse = await generateVerse();
+      const excludeRefs = history.map(v => v.reference);
+      const verse = await generateVerse(excludeRefs);
       setVerse(verse);
       resetProgress();
     } catch (error) {
@@ -67,17 +68,17 @@ function App() {
   return (
     <div className="min-h-screen font-sans text-slate-100 selection:bg-pink-500 selection:text-white pb-20">
       <Toaster position="top-center" />
-        {/* Header */}
+      {/* Header */}
       <header className="bg-indigo-950/80 backdrop-blur-md border-b border-indigo-800 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-yellow-400">
             <BookOpen size={28} strokeWidth={2.5} />
             <h1 className="text-xl font-bold tracking-tight text-white">MemorizaKids</h1>
           </div>
-          
+
           <div className="flex items-center gap-4">
             {history.length > 0 && (
-              <button 
+              <button
                 onClick={handleSurpriseMe}
                 className="text-sm font-medium text-yellow-300 hover:text-white flex items-center gap-1 transition-colors"
               >
@@ -102,7 +103,7 @@ function App() {
               <span className="hidden sm:inline">Conquistas</span>
             </button>
 
-            <button 
+            <button
               onClick={loadNewVerse}
               disabled={isLoading}
               className="text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
@@ -123,14 +124,9 @@ function App() {
         ) : (
           <div className="flex flex-col h-full">
             <div className="flex-none pt-2 pb-4 z-10">
-              {currentVerse?.isFallback && (
-                <div className="bg-yellow-500/20 border border-yellow-500/50 text-yellow-200 px-4 py-2 rounded-lg mb-4 text-sm text-center">
-                  ⚠️ Não foi possível gerar um novo versículo. Mostrando um exemplo offline.
-                </div>
-              )}
               <DayNavigator />
             </div>
-            
+
             <div className="flex-1 flex items-start justify-center">
               <VerseCard onNewVerse={loadNewVerse} />
             </div>
