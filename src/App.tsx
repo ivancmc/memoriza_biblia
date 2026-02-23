@@ -76,7 +76,7 @@ function App() {
   }, [lastUnlockedAchievement, clearLastUnlockedAchievement]);
 
   return (
-    <div className="h-screen flex flex-col font-sans text-slate-100 selection:bg-pink-500 selection:text-white overflow-hidden">
+    <div className="h-screen flex flex-col font-sans text-slate-100 selection:bg-pink-500 selection:text-white overflow-hidden max-w-full">
       <Toaster position="top-center" />
       {/* Header */}
       <header className="bg-indigo-950/80 backdrop-blur-md border-b border-indigo-800 sticky top-0 z-50">
@@ -125,7 +125,7 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-4 md:py-8 flex flex-col flex-1 overflow-y-auto">
+      <main className="max-w-4xl mx-auto px-4 py-4 md:py-8 flex flex-col flex-1 overflow-y-auto overflow-x-hidden min-w-0 w-full">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center flex-1 space-y-4">
             <div className="w-12 h-12 border-4 border-indigo-500 border-t-yellow-400 rounded-full animate-spin" />

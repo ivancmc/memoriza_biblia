@@ -7,7 +7,7 @@ const DayNavigator: React.FC = () => {
   const { currentDay, completedDays, setCurrentDay } = useStore();
 
   return (
-    <div className="flex justify-start md:justify-center gap-2 mb-2 overflow-x-auto p-4 w-full no-scrollbar">
+    <div className="flex justify-start md:justify-center gap-2 mb-2 overflow-x-auto p-4 w-full max-w-full min-w-0 no-scrollbar">
       {[1, 2, 3, 4, 5, 6, 7].map((day) => {
         const isCompleted = completedDays.includes(day);
         const isCurrent = currentDay === day;
