@@ -42,7 +42,7 @@ const ReminderTimeModal: React.FC<ReminderTimeModalProps> = ({
                         <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mb-4 border border-indigo-400/20 shadow-inner group transition-transform hover:scale-110 duration-300">
                             <Clock className="text-indigo-400 group-hover:text-indigo-300" size={32} />
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-2">Hora do Lembrete</h2>
+                        <h2 className="text-2xl font-bold text-white mb-2">Hora do lembrete</h2>
                         <p className="text-indigo-200/70 text-sm">Escolha o melhor horário para praticar seus versículos.</p>
                     </div>
 
@@ -95,7 +95,7 @@ const ReminderTimeModal: React.FC<ReminderTimeModalProps> = ({
                         className="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold rounded-2xl shadow-lg shadow-indigo-900/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
                     >
                         <Check size={20} />
-                        Salvar Horário
+                        Salvar horário
                     </button>
                 </div>
             </div>

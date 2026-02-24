@@ -21,7 +21,7 @@ const Day3Activity: React.FC<Day3ActivityProps> = ({ verse, referenceOptions, on
       <div className="text-center space-y-6">
         <h2 className="text-2xl font-bold text-blue-400 mb-4">Dia 3: Qual é a referência?</h2>
         <p className="text-xl text-indigo-200 mb-8">Antes de completar o versículo, você lembra onde ele está na Bíblia?</p>
-        
+
         <div className="grid gap-4 max-w-md mx-auto">
           {referenceOptions.map((ref, idx) => (
             <motion.button
@@ -64,7 +64,7 @@ const Day3Activity: React.FC<Day3ActivityProps> = ({ verse, referenceOptions, on
 
   return (
     <div className="text-center space-y-6">
-      <h2 className="text-2xl font-bold text-blue-400 mb-4">Dia 3: Complete a Frase</h2>
+      <h2 className="text-2xl font-bold text-blue-400 mb-4">Dia 3: Complete o versículo recitando</h2>
       <p className="text-lg text-blue-200 font-semibold mb-6 bg-blue-900/50 inline-block px-4 py-1 rounded-full border border-blue-500/30">
         {verse.reference}
       </p>
@@ -72,7 +72,7 @@ const Day3Activity: React.FC<Day3ActivityProps> = ({ verse, referenceOptions, on
         {words.map((word, idx) => {
           const cleanWord = word.replace(/[.,;!?]/g, '');
           const isKeyword = verse.keywords.some(k => k.toLowerCase() === cleanWord.toLowerCase());
-          
+
           if (isKeyword) {
             return (
               <span key={idx} className="border-b-2 border-blue-400 min-w-[80px] text-blue-300 px-2 bg-blue-900/30 rounded">
@@ -85,14 +85,14 @@ const Day3Activity: React.FC<Day3ActivityProps> = ({ verse, referenceOptions, on
       </div>
 
       <div className="flex justify-center gap-4 mt-8">
-         <motion.button
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowHint(!showHint)}
           className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-4 py-2 rounded-full flex items-center gap-2 font-bold hover:bg-yellow-500/30"
         >
           <HelpCircle size={20} />
-          {showHint ? 'Esconder Dica' : 'Ver Dica'}
+          {showHint ? 'Esconder dica' : 'Ver dica'}
         </motion.button>
 
         <motion.button

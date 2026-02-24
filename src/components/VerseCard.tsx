@@ -170,7 +170,7 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
                   className="bg-green-500 text-white px-8 py-4 rounded-full font-bold shadow-xl hover:bg-green-600 transition-colors w-full max-w-sm mx-auto flex items-center justify-center gap-2 text-lg"
                 >
                   <RefreshCw size={24} />
-                  Começar Novo Versículo
+                  Começar novo versículo
                 </motion.button>
               </>
             ) : (

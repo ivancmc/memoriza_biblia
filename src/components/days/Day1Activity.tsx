@@ -13,7 +13,7 @@ interface Day1ActivityProps {
 const Day1Activity: React.FC<Day1ActivityProps> = ({ verse, onComplete, onSpeak, isSpeaking }) => {
   return (
     <div className="text-center space-y-4 md:space-y-6">
-      <h2 className="text-xl md:text-2xl font-bold text-yellow-400 mb-2">Dia 1: Vamos Conhecer!</h2>
+      <h2 className="text-xl md:text-2xl font-bold text-yellow-400 mb-2">Dia 1: Conhecendo o versículo</h2>
       <p className="text-xl md:text-3xl font-medium text-white leading-relaxed font-serif">
         "{verse.text}"
       </p>
@@ -28,7 +28,7 @@ const Day1Activity: React.FC<Day1ActivityProps> = ({ verse, onComplete, onSpeak,
             } px-6 py-3 rounded-full flex items-center gap-2 font-bold transition-colors w-full max-w-xs justify-center`}
         >
           {isSpeaking ? <Square size={24} fill="currentColor" /> : <Volume2 size={24} />}
-          {isSpeaking ? 'Parar Áudio' : 'Ouvir Versículo'}
+          {isSpeaking ? 'Parar áudio' : 'Ouvir versículo'}
         </motion.button>
 
         <motion.button
@@ -37,7 +37,7 @@ const Day1Activity: React.FC<Day1ActivityProps> = ({ verse, onComplete, onSpeak,
           onClick={onComplete}
           className="bg-green-500 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-green-600 transition-colors w-full max-w-xs"
         >
-          Já Li e Ouvi!
+          Já li e ouvi!
         </motion.button>
       </div>
     </div>

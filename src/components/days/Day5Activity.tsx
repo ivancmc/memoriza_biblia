@@ -18,14 +18,14 @@ const Day5Activity: React.FC<Day5ActivityProps> = ({ verse, onComplete }) => {
     const parts = verse.reference.split(':');
     let refParts = [verse.reference];
     if (parts.length === 2) {
-        const verseNum = parts[1];
-        const bookChapter = parts[0];
-        const lastSpace = bookChapter.lastIndexOf(' ');
-        if (lastSpace !== -1) {
-            const book = bookChapter.substring(0, lastSpace);
-            const chapter = bookChapter.substring(lastSpace + 1);
-            refParts = [book, chapter, ':', verseNum];
-        }
+      const verseNum = parts[1];
+      const bookChapter = parts[0];
+      const lastSpace = bookChapter.lastIndexOf(' ');
+      if (lastSpace !== -1) {
+        const book = bookChapter.substring(0, lastSpace);
+        const chapter = bookChapter.substring(lastSpace + 1);
+        refParts = [book, chapter, ':', verseNum];
+      }
     }
     return [...verse.text.split(' '), ...refParts].sort(() => Math.random() - 0.5);
   };
@@ -38,8 +38,8 @@ const Day5Activity: React.FC<Day5ActivityProps> = ({ verse, onComplete }) => {
 
   return (
     <div className="text-center space-y-6">
-      <h2 className="text-2xl font-bold text-orange-400 mb-4">Dia 5: Coloque em Ordem</h2>
-      
+      <h2 className="text-2xl font-bold text-orange-400 mb-4">Dia 5: Coloque em ordem</h2>
+
       <div className="min-h-[60px] bg-orange-900/20 p-4 rounded-xl border-2 border-dashed border-orange-500/30 flex flex-wrap gap-2 justify-center mb-6">
         {selectedWords.map((word, idx) => (
           <motion.button
@@ -55,7 +55,7 @@ const Day5Activity: React.FC<Day5ActivityProps> = ({ verse, onComplete }) => {
             {word}
           </motion.button>
         ))}
-        {selectedWords.length === 0 && <span className="text-indigo-400 italic">Toque nas palavras abaixo...</span>}
+        {selectedWords.length === 0 && <span className="text-indigo-400 italic">Toque nas palavras para montar o versículo com referência no final...</span>}
       </div>
 
       <div className="flex flex-wrap justify-center gap-2">
@@ -100,7 +100,7 @@ const Day5Activity: React.FC<Day5ActivityProps> = ({ verse, onComplete }) => {
             const normalizedCurrent = currentText.replace(/\s+:\s+/g, ':');
             const cleanCurrent = normalizedCurrent.replace(/[.,;!?]/g, '').toLowerCase();
             const cleanOriginal = (verse.text + ' ' + verse.reference).replace(/[.,;!?]/g, '').toLowerCase();
-            
+
             if (cleanCurrent === cleanOriginal) {
               onComplete();
             } else {
@@ -112,7 +112,7 @@ const Day5Activity: React.FC<Day5ActivityProps> = ({ verse, onComplete }) => {
           Verificar
         </motion.button>
       </div>
-      
+
       {error && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}

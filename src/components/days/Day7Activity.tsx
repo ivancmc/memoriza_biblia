@@ -13,8 +13,8 @@ const Day7Activity: React.FC<Day7ActivityProps> = ({ verse, onComplete }) => {
 
   return (
     <div className="text-center space-y-6">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Dia 7: Grande Desafio!</h2>
-      
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Dia 7: Grande desafio!</h2>
+
       <div className="bg-yellow-500/20 p-8 rounded-full w-32 h-32 mx-auto flex items-center justify-center mb-4 border border-yellow-500/50">
         <Star size={48} className="text-yellow-400 animate-pulse" fill="currentColor" />
       </div>
@@ -35,7 +35,7 @@ const Day7Activity: React.FC<Day7ActivityProps> = ({ verse, onComplete }) => {
       )}
 
       <div className="flex justify-center gap-4 mt-8">
-         <motion.button
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowHint(!showHint)}
@@ -52,7 +52,7 @@ const Day7Activity: React.FC<Day7ActivityProps> = ({ verse, onComplete }) => {
           className="bg-yellow-500 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-yellow-600 flex items-center gap-2"
         >
           <CheckCircle size={24} />
-          Eu Memorizei!
+          Eu memorizei!
         </motion.button>
       </div>
     </div>
