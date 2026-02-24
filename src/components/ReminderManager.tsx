@@ -159,10 +159,10 @@ const ReminderManager = () => {
       <button
         onClick={handleToggleReminders}
         disabled={permission === 'denied' || isRequesting}
-        className={`group text-sm font-medium flex items-center gap-1 transition-all ${className}`}
+        className={`group text-sm font-medium flex items-center gap-3 w-full transition-all ${className}`}
         title={permission === 'granted' ? "Ajustar horário do lembrete" : ""}
       >
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <Icon size={20} />
           {permission === 'granted' && (
             <div className="absolute -top-1 -right-1 bg-indigo-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -170,8 +170,8 @@ const ReminderManager = () => {
             </div>
           )}
         </div>
-        <span className="hidden sm:inline">
-          {permission === 'granted' ? `${reminderConfig.hour.toString().padStart(2, '0')}:${reminderConfig.minute.toString().padStart(2, '0')}` : text}
+        <span className="font-medium">
+          {permission === 'granted' ? `Lembretes · ${reminderConfig.hour.toString().padStart(2, '0')}:${reminderConfig.minute.toString().padStart(2, '0')}` : text}
         </span>
       </button>
 

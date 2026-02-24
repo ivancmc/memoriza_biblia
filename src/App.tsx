@@ -20,6 +20,7 @@ function App() {
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
   const { isInstallAvailable, handleInstallClick } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (isInstallAvailable) {
@@ -32,6 +33,7 @@ function App() {
       const randomIndex = Math.floor(Math.random() * history.length);
       setRecallVerse(history[randomIndex]);
     }
+    setIsSidebarOpen(false);
   };
 
   const loadNewVerse = async () => {
@@ -78,50 +80,96 @@ function App() {
   return (
     <div className="h-screen flex flex-col font-sans text-slate-100 selection:bg-pink-500 selection:text-white overflow-hidden max-w-full">
       <Toaster position="top-center" />
-      {/* Header */}
-      <header className="bg-indigo-950/80 backdrop-blur-md border-b border-indigo-800 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-yellow-400">
-            <BookOpen size={28} strokeWidth={2.5} />
-            <h1 className="text-xl font-bold tracking-tight text-white">MemorizaBíblia</h1>
-          </div>
 
-          <div className="flex items-center gap-4">
-            {history.length > 0 && (
-              <button
-                onClick={handleRecall}
-                className="text-sm font-medium text-yellow-300 hover:text-white flex items-center gap-1 transition-colors"
-              >
-                <Sparkles size={20} />
-                <span className="hidden sm:inline">Relembre</span>
-              </button>
-            )}
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Drawer */}
+      <motion.aside
+        initial={{ x: '-100%' }}
+        animate={{ x: isSidebarOpen ? 0 : '-100%' }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="fixed top-0 left-0 h-full w-72 bg-indigo-950 border-r border-indigo-800 z-50 flex flex-col shadow-2xl"
+      >
+        {/* Sidebar Header */}
+        <div className="flex items-center gap-2 px-6 py-5 border-b border-indigo-800">
+          <BookOpen size={24} strokeWidth={2.5} className="text-yellow-400" />
+          <span className="text-lg font-bold text-white tracking-tight">MemorizaBíblia</span>
+        </div>
+
+        {/* Sidebar Items */}
+        <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
+          {history.length > 0 && (
+            <button
+              onClick={handleRecall}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-yellow-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+            >
+              <Sparkles size={20} />
+              <span className="font-medium">Relembre</span>
+            </button>
+          )}
+
+          <div className="px-4 py-3 rounded-xl hover:bg-indigo-800/60 transition-all">
             <ReminderManager />
-            <button
-              onClick={() => setIsHistoryOpen(true)}
-              className="text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-1 transition-colors"
-            >
-              <History size={20} />
-              <span className="hidden sm:inline">Histórico</span>
-            </button>
-
-            <button
-              onClick={() => setIsAchievementsOpen(true)}
-              className="text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-1 transition-colors"
-            >
-              <Award size={20} />
-              <span className="hidden sm:inline">Conquistas</span>
-            </button>
-
-            <button
-              onClick={loadNewVerse}
-              disabled={isLoading}
-              className="text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-              <span className="hidden sm:inline">Novo Versículo</span>
-            </button>
           </div>
+
+          <button
+            onClick={() => { setIsHistoryOpen(true); setIsSidebarOpen(false); }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+          >
+            <History size={20} />
+            <span className="font-medium">Histórico</span>
+          </button>
+
+          <button
+            onClick={() => { setIsAchievementsOpen(true); setIsSidebarOpen(false); }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+          >
+            <Award size={20} />
+            <span className="font-medium">Conquistas</span>
+          </button>
+        </nav>
+
+      </motion.aside>
+
+      {/* Header */}
+      <header className="bg-indigo-950/80 backdrop-blur-md border-b border-indigo-800 sticky top-0 z-30">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Hamburger Button */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex flex-col gap-1.5 p-2 rounded-lg hover:bg-indigo-800/50 transition-colors"
+              aria-label="Abrir menu"
+            >
+              <span className="block w-5 h-0.5 bg-indigo-300 rounded-full" />
+              <span className="block w-5 h-0.5 bg-indigo-300 rounded-full" />
+              <span className="block w-5 h-0.5 bg-indigo-300 rounded-full" />
+            </button>
+
+            <div className="flex items-center gap-2 text-yellow-400">
+              <BookOpen size={28} strokeWidth={2.5} />
+              <h1 className="text-xl font-bold tracking-tight text-white">MemorizaBíblia</h1>
+            </div>
+          </div>
+
+          {/* Novo Versículo permanece no header */}
+          <button
+            onClick={loadNewVerse}
+            disabled={isLoading}
+            className="text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">Novo Versículo</span>
+          </button>
         </div>
       </header>
 
