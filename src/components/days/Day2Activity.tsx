@@ -20,7 +20,7 @@ const Day2Activity: React.FC<Day2ActivityProps> = ({ verse, onComplete }) => {
         </p>
         {verse.bookContext && (
           <div className="mt-4 pt-4 border-t border-pink-500/30">
-            <p className="text-sm font-bold text-pink-400 uppercase tracking-wide mb-1">Sobre o livro</p>
+            <p className="text-sm font-bold text-pink-400 uppercase tracking-wide mb-1">Contexto</p>
             <p className="text-md text-indigo-300 italic">
               {verse.bookContext}
             </p>
