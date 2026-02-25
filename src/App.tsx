@@ -209,7 +209,7 @@ function App() {
             <button
               onClick={loadNewVerse}
               disabled={isLoading}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-indigo-200 hover:text-white disabled:opacity-50 text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-indigo-200 hover:text-white disabled:opacity-50 text-sm font-medium h-9"
             >
               <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
               <span className="hidden sm:inline">Novo Versículo</span>
@@ -221,7 +221,7 @@ function App() {
                 {/* Avatar Button */}
                 <button
                   onClick={() => setIsUserMenuOpen(v => !v)}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-white"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-white h-9"
                   title="Minha conta"
                 >
                   <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-yellow-400 flex-shrink-0">
@@ -269,7 +269,7 @@ function App() {
             ) : (
               <button
                 onClick={() => setIsAuthOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all text-sm shadow shadow-yellow-500/20"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all text-sm shadow shadow-yellow-500/20 h-9"
               >
                 <LogIn size={16} />
                 <span className="hidden sm:inline">Entrar</span>
