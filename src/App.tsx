@@ -6,7 +6,7 @@ import { useStore, Verse } from './store';
 import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
-import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { HistoryModal } from './components/HistoryModal';
 import ReminderManager from './components/ReminderManager';
@@ -14,6 +14,7 @@ import { usePWAInstall } from './hooks/usePWAInstall';
 import InstallPromptModal from './components/InstallPromptModal';
 import { AuthModal } from './components/AuthModal';
 import { ProfileModal } from './components/ProfileModal';
+import { SearchModal } from './components/SearchModal';
 import { supabase } from './services/supabase';
 
 
@@ -28,6 +29,7 @@ function App() {
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
   const { isInstallAvailable, handleInstallClick } = usePWAInstall();
@@ -76,6 +78,11 @@ function App() {
       setRecallVerse(history[randomIndex]);
     }
     setIsSidebarOpen(false);
+  };
+
+  const handleSearchMemorize = (verse: Verse) => {
+    setVerse(verse);
+    resetProgress();
   };
 
   const loadNewVerse = async () => {
@@ -149,6 +156,14 @@ function App() {
 
         {/* Sidebar Items */}
         <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
+          <button
+            onClick={() => { setIsSearchOpen(true); setIsSidebarOpen(false); }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+          >
+            <Search size={20} />
+            <span className="font-medium">Buscar Versículo</span>
+          </button>
+
           {history.length > 0 && (
             <button
               onClick={handleRecall}
@@ -303,6 +318,11 @@ function App() {
       <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
       {user && <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />}
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onStartMemorization={handleSearchMemorize}
+      />
       <InstallPromptModal
         isOpen={showInstallModal}
         onClose={() => setShowInstallModal(false)}
