@@ -6,15 +6,16 @@ import { useStore, Verse } from './store';
 import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
-import { BookOpen, RefreshCw, History, Sparkles, Award } from 'lucide-react';
+import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { HistoryModal } from './components/HistoryModal';
 import ReminderManager from './components/ReminderManager';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import InstallPromptModal from './components/InstallPromptModal';
 import { AuthModal } from './components/AuthModal';
+import { ProfileModal } from './components/ProfileModal';
 import { supabase } from './services/supabase';
-import { LogIn, LogOut, User as UserIcon } from 'lucide-react';
+
 
 function App() {
   const {
@@ -26,6 +27,8 @@ function App() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
   const { isInstallAvailable, handleInstallClick } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
@@ -177,42 +180,6 @@ function App() {
           </button>
         </nav>
 
-        {/* User Profile Section */}
-        <div className="px-3 py-4 border-t border-indigo-800">
-          {user ? (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-900/50">
-                <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-indigo-200">
-                  <UserIcon size={20} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{user.email}</p>
-                  <p className="text-xs text-indigo-400">Viajante Estelar</p>
-                </div>
-              </div>
-              <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  setIsSidebarOpen(false);
-                  toast.success('Até logo!');
-                }}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-pink-400 hover:bg-pink-500/10 transition-all text-left"
-              >
-                <LogOut size={20} />
-                <span className="font-medium">Sair</span>
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => { setIsAuthOpen(true); setIsSidebarOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all shadow-lg shadow-yellow-500/10"
-            >
-              <LogIn size={20} />
-              <span>Entrar / Cadastrar</span>
-            </button>
-          )}
-        </div>
-
       </motion.aside>
 
       {/* Header */}
@@ -236,15 +203,79 @@ function App() {
             </div>
           </div>
 
-          {/* Novo Versículo permanece no header */}
-          <button
-            onClick={loadNewVerse}
-            disabled={isLoading}
-            className="text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-            <span className="hidden sm:inline">Novo Versículo</span>
-          </button>
+          {/* Right side: Novo Versículo + Auth Controls */}
+          <div className="flex items-center gap-2">
+            {/* Novo Versículo */}
+            <button
+              onClick={loadNewVerse}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-indigo-200 hover:text-white disabled:opacity-50 text-sm font-medium"
+            >
+              <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+              <span className="hidden sm:inline">Novo Versículo</span>
+            </button>
+
+            {/* Auth Controls */}
+            {user ? (
+              <div className="relative">
+                {/* Avatar Button */}
+                <button
+                  onClick={() => setIsUserMenuOpen(v => !v)}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-white"
+                  title="Minha conta"
+                >
+                  <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-yellow-400 flex-shrink-0">
+                    <UserIcon size={14} />
+                  </div>
+                  <span className="text-sm font-semibold hidden sm:block max-w-[90px] truncate">
+                    {user.user_metadata?.display_name || user.email?.split('@')[0]}
+                  </span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <>
+                    {/* Invisible overlay to close menu */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-indigo-900 border border-indigo-700 rounded-2xl shadow-2xl overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b border-indigo-800">
+                        <p className="text-xs text-indigo-400 truncate">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={() => { setIsProfileOpen(true); setIsUserMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-indigo-200 hover:bg-indigo-800 hover:text-white transition-all text-left"
+                      >
+                        <UserIcon size={16} />
+                        Meu Perfil
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setIsUserMenuOpen(false);
+                          await supabase.auth.signOut();
+                          toast.success('Até logo!');
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-pink-400 hover:bg-pink-500/10 transition-all text-left"
+                      >
+                        <LogOut size={16} />
+                        Sair
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all text-sm shadow shadow-yellow-500/20"
+              >
+                <LogIn size={16} />
+                <span className="hidden sm:inline">Entrar</span>
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -271,6 +302,7 @@ function App() {
       <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
       <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      {user && <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />}
       <InstallPromptModal
         isOpen={showInstallModal}
         onClose={() => setShowInstallModal(false)}
