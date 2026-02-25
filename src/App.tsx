@@ -6,21 +6,65 @@ import { useStore, Verse } from './store';
 import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
-import { BookOpen, RefreshCw, History, Sparkles, Award } from 'lucide-react';
+import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { HistoryModal } from './components/HistoryModal';
 import ReminderManager from './components/ReminderManager';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import InstallPromptModal from './components/InstallPromptModal';
+import { AuthModal } from './components/AuthModal';
+import { ProfileModal } from './components/ProfileModal';
+import { SearchModal } from './components/SearchModal';
+import { supabase } from './services/supabase';
+
 
 function App() {
-  const { currentVerse, setVerse, isLoading, setLoading, resetProgress, history, lastUnlockedAchievement, clearLastUnlockedAchievement } = useStore();
+  const {
+    currentVerse, setVerse, isLoading, setLoading, resetProgress,
+    history, lastUnlockedAchievement, clearLastUnlockedAchievement,
+    currentDay, completedDays,
+    user, setUser, setSession, loadFromSupabase, syncToSupabase
+  } = useStore();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
   const { isInstallAvailable, handleInstallClick } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadFromSupabase();
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadFromSupabase();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Sync state whenever it changes and user is logged in
+  useEffect(() => {
+    if (user) {
+      const timeoutId = setTimeout(() => {
+        syncToSupabase();
+      }, 1000); // Debounce sync
+      return () => clearTimeout(timeoutId);
+    }
+  }, [history.length, completedDays?.length, currentDay, user]);
 
   useEffect(() => {
     if (isInstallAvailable) {
@@ -34,6 +78,11 @@ function App() {
       setRecallVerse(history[randomIndex]);
     }
     setIsSidebarOpen(false);
+  };
+
+  const handleSearchMemorize = (verse: Verse) => {
+    setVerse(verse);
+    resetProgress();
   };
 
   const loadNewVerse = async () => {
@@ -107,6 +156,14 @@ function App() {
 
         {/* Sidebar Items */}
         <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
+          <button
+            onClick={() => { setIsSearchOpen(true); setIsSidebarOpen(false); }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+          >
+            <Search size={20} />
+            <span className="font-medium">Buscar Versículo</span>
+          </button>
+
           {history.length > 0 && (
             <button
               onClick={handleRecall}
@@ -161,15 +218,79 @@ function App() {
             </div>
           </div>
 
-          {/* Novo Versículo permanece no header */}
-          <button
-            onClick={loadNewVerse}
-            disabled={isLoading}
-            className="text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-            <span className="hidden sm:inline">Novo Versículo</span>
-          </button>
+          {/* Right side: Novo Versículo + Auth Controls */}
+          <div className="flex items-center gap-2">
+            {/* Novo Versículo */}
+            <button
+              onClick={loadNewVerse}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-indigo-200 hover:text-white disabled:opacity-50 text-sm font-medium h-9"
+            >
+              <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+              <span className="hidden sm:inline">Novo Versículo</span>
+            </button>
+
+            {/* Auth Controls */}
+            {user ? (
+              <div className="relative">
+                {/* Avatar Button */}
+                <button
+                  onClick={() => setIsUserMenuOpen(v => !v)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-white h-9"
+                  title="Minha conta"
+                >
+                  <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-yellow-400 flex-shrink-0">
+                    <UserIcon size={14} />
+                  </div>
+                  <span className="text-sm font-semibold hidden sm:block max-w-[90px] truncate">
+                    {user.user_metadata?.display_name || user.email?.split('@')[0]}
+                  </span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <>
+                    {/* Invisible overlay to close menu */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-indigo-900 border border-indigo-700 rounded-2xl shadow-2xl overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b border-indigo-800">
+                        <p className="text-xs text-indigo-400 truncate">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={() => { setIsProfileOpen(true); setIsUserMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-indigo-200 hover:bg-indigo-800 hover:text-white transition-all text-left"
+                      >
+                        <UserIcon size={16} />
+                        Meu Perfil
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setIsUserMenuOpen(false);
+                          await supabase.auth.signOut();
+                          toast.success('Até logo!');
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-pink-400 hover:bg-pink-500/10 transition-all text-left"
+                      >
+                        <LogOut size={16} />
+                        Sair
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all text-sm shadow shadow-yellow-500/20 h-9"
+              >
+                <LogIn size={16} />
+                <span className="hidden sm:inline">Entrar</span>
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -195,6 +316,13 @@ function App() {
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
       <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
       <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      {user && <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />}
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onStartMemorization={handleSearchMemorize}
+      />
       <InstallPromptModal
         isOpen={showInstallModal}
         onClose={() => setShowInstallModal(false)}
