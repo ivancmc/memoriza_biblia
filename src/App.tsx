@@ -12,15 +12,54 @@ import { HistoryModal } from './components/HistoryModal';
 import ReminderManager from './components/ReminderManager';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import InstallPromptModal from './components/InstallPromptModal';
+import { AuthModal } from './components/AuthModal';
+import { supabase } from './services/supabase';
+import { LogIn, LogOut, User as UserIcon } from 'lucide-react';
 
 function App() {
-  const { currentVerse, setVerse, isLoading, setLoading, resetProgress, history, lastUnlockedAchievement, clearLastUnlockedAchievement } = useStore();
+  const {
+    currentVerse, setVerse, isLoading, setLoading, resetProgress,
+    history, lastUnlockedAchievement, clearLastUnlockedAchievement,
+    currentDay, completedDays,
+    user, setUser, setSession, loadFromSupabase, syncToSupabase
+  } = useStore();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
   const { isInstallAvailable, handleInstallClick } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadFromSupabase();
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadFromSupabase();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Sync state whenever it changes and user is logged in
+  useEffect(() => {
+    if (user) {
+      const timeoutId = setTimeout(() => {
+        syncToSupabase();
+      }, 1000); // Debounce sync
+      return () => clearTimeout(timeoutId);
+    }
+  }, [history.length, completedDays?.length, currentDay, user]);
 
   useEffect(() => {
     if (isInstallAvailable) {
@@ -138,6 +177,42 @@ function App() {
           </button>
         </nav>
 
+        {/* User Profile Section */}
+        <div className="px-3 py-4 border-t border-indigo-800">
+          {user ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-900/50">
+                <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-indigo-200">
+                  <UserIcon size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{user.email}</p>
+                  <p className="text-xs text-indigo-400">Viajante Estelar</p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setIsSidebarOpen(false);
+                  toast.success('Até logo!');
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-pink-400 hover:bg-pink-500/10 transition-all text-left"
+              >
+                <LogOut size={20} />
+                <span className="font-medium">Sair</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setIsAuthOpen(true); setIsSidebarOpen(false); }}
+              className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all shadow-lg shadow-yellow-500/10"
+            >
+              <LogIn size={20} />
+              <span>Entrar / Cadastrar</span>
+            </button>
+          )}
+        </div>
+
       </motion.aside>
 
       {/* Header */}
@@ -195,6 +270,7 @@ function App() {
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
       <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
       <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
       <InstallPromptModal
         isOpen={showInstallModal}
         onClose={() => setShowInstallModal(false)}

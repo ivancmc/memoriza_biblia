@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AchievementId, achievements } from './components/AchievementsModal';
+import { supabase } from './services/supabase';
+import { Session, User } from '@supabase/supabase-js';
 
 export interface Verse {
   reference: string;
@@ -22,6 +24,8 @@ interface AppState {
   isLoading: boolean;
   unlockedAchievements: AchievementId[];
   lastUnlockedAchievement: AchievementId | null;
+  user: User | null;
+  session: Session | null;
   setCurrentDay: (day: number) => void;
   completeDay: (day: number) => void;
   setVerse: (verse: Verse) => void;
@@ -29,6 +33,10 @@ interface AppState {
   setLoading: (loading: boolean) => void;
   resetProgress: () => void;
   clearLastUnlockedAchievement: () => void;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  syncToSupabase: () => Promise<void>;
+  loadFromSupabase: () => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
@@ -41,6 +49,8 @@ export const useStore = create<AppState>()(
       isLoading: false,
       unlockedAchievements: [],
       lastUnlockedAchievement: null,
+      user: null,
+      session: null,
       setCurrentDay: (day) => set({ currentDay: day }),
       completeDay: (day) =>
         set((state) => ({
@@ -80,6 +90,65 @@ export const useStore = create<AppState>()(
       setLoading: (loading) => set({ isLoading: loading }),
       resetProgress: () => set({ currentDay: 1, completedDays: [] }),
       clearLastUnlockedAchievement: () => set({ lastUnlockedAchievement: null }),
+      setUser: (user) => set({ user }),
+      setSession: (session) => set({ session }),
+      syncToSupabase: async () => {
+        const state = useStore.getState();
+        if (!state.user) return;
+
+        await supabase.from('profiles').upsert({
+          id: state.user.id,
+          current_day: state.currentDay,
+          completed_days: state.completedDays,
+          history_refs: state.history.map(v => v.reference),
+          unlocked_achievements: state.unlockedAchievements,
+        });
+      },
+      loadFromSupabase: async () => {
+        const state = useStore.getState();
+        if (!state.user) return;
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', state.user.id)
+          .single();
+
+        if (error || !data) return;
+
+        // Fetch full verse objects for the history
+        let history: Verse[] = [];
+        if (data.history_refs && data.history_refs.length > 0) {
+          const { data: versesData } = await supabase
+            .from('verses')
+            .select('*')
+            .in('reference', data.history_refs);
+
+          if (versesData) {
+            // Reorder to match history_refs order
+            history = data.history_refs
+              .map((ref: string) => versesData.find((v: any) => v.reference === ref))
+              .filter(Boolean)
+              .map((v: any) => ({
+                reference: v.reference,
+                text: v.text,
+                explanation: v.explanation,
+                bookContext: v.book_context,
+                keywords: v.keywords,
+                emojiText: v.emoji_text,
+                scrambled: v.scrambled,
+                fakeReferences: v.fake_references,
+              }));
+          }
+        }
+
+        set({
+          currentDay: data.current_day,
+          completedDays: data.completed_days,
+          unlockedAchievements: data.unlocked_achievements as AchievementId[],
+          history: history,
+        });
+      },
     }),
     {
       name: 'memorizakids-storage',
