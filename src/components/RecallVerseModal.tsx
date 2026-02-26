@@ -53,7 +53,7 @@ export const RecallVerseModal: React.FC<RecallVerseModalProps> = ({ verse, onClo
                                 onClick={onClose}
                                 className="bg-yellow-500 text-slate-900 px-6 py-2 rounded-full font-bold hover:bg-yellow-400 transition-colors"
                             >
-                                Entendi, obrigado!
+                                Lembrei!
                             </button>
                         </div>
                     </motion.div>
