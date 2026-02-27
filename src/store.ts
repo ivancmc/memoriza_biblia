@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AchievementId, achievements } from './components/AchievementsModal';
+import { offlineVerses } from './data/verses';
 import { supabase } from './services/supabase';
 import { Session, User } from '@supabase/supabase-js';
 
@@ -115,7 +116,7 @@ export const useStore = create<AppState>()(
           updated_at: new Date().toISOString()
         };
 
-        console.log('Pushing sync to Supabase profile:', syncData.current_verse_ref);
+        console.log('Pushing sync to Supabase profile. User ID:', state.user.id, 'Verse Ref:', syncData.current_verse_ref);
 
         const { error } = await supabase.from('profiles').upsert(syncData, { onConflict: 'id' });
 
@@ -153,23 +154,30 @@ export const useStore = create<AppState>()(
             .in('reference', refsToFetch);
 
           if (versesData) {
+            const allVerses = [...versesData];
+
             // Reorder to match history_refs order
             history = (data.history_refs || [])
-              .map((ref: string) => versesData.find((v: any) => v.reference === ref))
-              .filter(Boolean)
-              .map((v: any) => ({
-                reference: v.reference,
-                text: v.text,
-                explanation: v.explanation,
-                bookContext: v.book_context,
-                keywords: v.keywords,
-                emojiText: v.emoji_text,
-                scrambled: v.scrambled,
-                fakeReferences: v.fake_references,
-              }));
+              .map((ref: string) => {
+                const found = allVerses.find((v: any) => v.reference === ref);
+                if (found) return {
+                  reference: found.reference,
+                  text: found.text,
+                  explanation: found.explanation,
+                  bookContext: found.book_context,
+                  keywords: found.keywords,
+                  emojiText: found.emoji_text,
+                  scrambled: found.scrambled,
+                  fakeReferences: found.fake_references,
+                };
+                // Try to find in offline verses if not in DB
+                const offline = offlineVerses.find(ov => ov.reference === ref);
+                return offline || null;
+              })
+              .filter(Boolean) as Verse[];
 
             if (data.current_verse_ref) {
-              const v = versesData.find((v: any) => v.reference === data.current_verse_ref);
+              const v = allVerses.find((v: any) => v.reference === data.current_verse_ref);
               if (v) {
                 currentVerse = {
                   reference: v.reference,
@@ -181,15 +189,29 @@ export const useStore = create<AppState>()(
                   scrambled: v.scrambled,
                   fakeReferences: v.fake_references,
                 };
+              } else {
+                // Try to find in offline verses if not in DB
+                const offline = offlineVerses.find(ov => ov.reference === data.current_verse_ref);
+                if (offline) {
+                  currentVerse = offline;
+                } else if (state.currentVerse?.reference === data.current_verse_ref) {
+                  // Keep current one if it matches the reference we are looking for
+                  currentVerse = state.currentVerse;
+                }
               }
             }
           }
         }
 
+        // If data.current_verse_ref exists but couldn't be loaded, and we already have a verse in state,
+        // it might be better to keep the current one than setting it to null.
+        const finalCurrentVerse = currentVerse ||
+          (data.current_verse_ref === state.currentVerse?.reference ? state.currentVerse : null);
+
         set({
           currentDay: data.current_day,
           completedDays: data.completed_days,
-          currentVerse: currentVerse,
+          currentVerse: finalCurrentVerse,
           unlockedAchievements: data.unlocked_achievements as AchievementId[],
           history: history,
           reminderHour: data.reminder_hour,
