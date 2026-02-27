@@ -55,6 +55,7 @@ serve(async (req) => {
           reminder_hour,
           reminder_minute,
           timezone,
+          current_verse_ref,
           push_subscriptions (
             subscription
           )

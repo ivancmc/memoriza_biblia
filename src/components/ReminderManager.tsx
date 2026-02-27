@@ -2,50 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, Settings, RefreshCw } from 'lucide-react';
 import ReminderTimeModal from './ReminderTimeModal';
 import { supabase } from '../services/supabase';
+import { useStore } from '../store';
 
 const REMINDER_CONFIG_KEY = 'memorizakids_reminder_config';
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 const ReminderManager = () => {
+  const { reminderHour, reminderMinute, setReminderConfig } = useStore();
   const [permission, setPermission] = useState('default');
   const [isRequesting, setIsRequesting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
-  const [reminderConfig, setReminderConfig] = useState(() => {
-    const saved = localStorage.getItem(REMINDER_CONFIG_KEY);
-    return saved ? JSON.parse(saved) : { hour: 9, minute: 0 };
-  });
+  // Remove local reminderConfig state as we'll use the store
+
+  const hour = reminderHour ?? 9;
+  const minute = reminderMinute ?? 0;
 
   useEffect(() => {
     if ('Notification' in window) {
       setPermission(Notification.permission);
       checkActiveSubscription();
-      fetchReminderConfig();
     }
   }, []);
-
-  const fetchReminderConfig = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('reminder_hour, reminder_minute')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-
-      if (data && data.reminder_hour !== null) {
-        const newConfig = { hour: data.reminder_hour, minute: data.reminder_minute };
-        setReminderConfig(newConfig);
-        localStorage.setItem(REMINDER_CONFIG_KEY, JSON.stringify(newConfig));
-      }
-    } catch (error) {
-      console.error('Error fetching reminder config:', error);
-    }
-  };
 
   const checkActiveSubscription = async () => {
     if (!('serviceWorker' in navigator)) return;
@@ -157,34 +135,14 @@ const ReminderManager = () => {
   };
 
   const handleSaveTime = async (hour: number, minute: number) => {
-    const newConfig = { hour, minute };
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            reminder_hour: hour,
-            reminder_minute: minute,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          })
-          .eq('id', user.id);
-
-        if (error) throw error;
-      }
-
-      setReminderConfig(newConfig);
-      localStorage.setItem(REMINDER_CONFIG_KEY, JSON.stringify(newConfig));
+      // Syncing is now handled globally via App.tsx effect when store state changes
+      setReminderConfig(hour, minute);
       setIsModalOpen(false);
       alert(`Ótimo! Agora você receberá lembretes todos os dias às ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}.`);
     } catch (error) {
       console.error('Error updating notification preference:', error);
-      alert('Horário salvo localmente, mas houve um erro ao sincronizar com o servidor.');
-      // Still save locally
-      setReminderConfig(newConfig);
-      localStorage.setItem(REMINDER_CONFIG_KEY, JSON.stringify(newConfig));
-      setIsModalOpen(false);
+      alert('Houve um erro ao atualizar suas preferências.');
     }
   };
 
@@ -240,7 +198,7 @@ const ReminderManager = () => {
           )}
         </div>
         <span className="font-medium">
-          {permission === 'granted' ? `Lembretes · ${reminderConfig.hour.toString().padStart(2, '0')}:${reminderConfig.minute.toString().padStart(2, '0')}` : text}
+          {permission === 'granted' ? `Lembretes · ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}` : text}
         </span>
       </button>
 
@@ -248,8 +206,8 @@ const ReminderManager = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveTime}
-        initialHour={reminderConfig.hour}
-        initialMinute={reminderConfig.minute}
+        initialHour={hour}
+        initialMinute={minute}
       />
     </>
   );

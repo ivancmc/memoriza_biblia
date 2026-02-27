@@ -22,7 +22,7 @@ function App() {
   const {
     currentVerse, setVerse, isLoading, setLoading, resetProgress,
     history, lastUnlockedAchievement, clearLastUnlockedAchievement,
-    currentDay, completedDays,
+    currentDay, completedDays, reminderHour, reminderMinute,
     user, setUser, setSession, loadFromSupabase, syncToSupabase
   } = useStore();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -64,7 +64,15 @@ function App() {
       }, 1000); // Debounce sync
       return () => clearTimeout(timeoutId);
     }
-  }, [history.length, completedDays?.length, currentDay, user]);
+  }, [
+    history.length,
+    completedDays?.length,
+    currentDay,
+    currentVerse?.reference,
+    reminderHour,
+    reminderMinute,
+    user
+  ]);
 
   useEffect(() => {
     if (isInstallAvailable) {

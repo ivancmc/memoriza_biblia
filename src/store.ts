@@ -26,6 +26,8 @@ interface AppState {
   lastUnlockedAchievement: AchievementId | null;
   user: User | null;
   session: Session | null;
+  reminderHour: number | null;
+  reminderMinute: number | null;
   setCurrentDay: (day: number) => void;
   completeDay: (day: number) => void;
   setVerse: (verse: Verse) => void;
@@ -35,6 +37,7 @@ interface AppState {
   clearLastUnlockedAchievement: () => void;
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
+  setReminderConfig: (hour: number, minute: number) => void;
   syncToSupabase: () => Promise<void>;
   loadFromSupabase: () => Promise<void>;
 }
@@ -51,6 +54,8 @@ export const useStore = create<AppState>()(
       lastUnlockedAchievement: null,
       user: null,
       session: null,
+      reminderHour: null,
+      reminderMinute: null,
       setCurrentDay: (day) => set({ currentDay: day }),
       completeDay: (day) =>
         set((state) => ({
@@ -92,6 +97,7 @@ export const useStore = create<AppState>()(
       clearLastUnlockedAchievement: () => set({ lastUnlockedAchievement: null }),
       setUser: (user) => set({ user }),
       setSession: (session) => set({ session }),
+      setReminderConfig: (hour, minute) => set({ reminderHour: hour, reminderMinute: minute }),
       syncToSupabase: async () => {
         const state = useStore.getState();
         if (!state.user) return;
@@ -100,8 +106,12 @@ export const useStore = create<AppState>()(
           id: state.user.id,
           current_day: state.currentDay,
           completed_days: state.completedDays,
+          current_verse_ref: state.currentVerse?.reference,
           history_refs: state.history.map(v => v.reference),
           unlocked_achievements: state.unlockedAchievements,
+          reminder_hour: state.reminderHour,
+          reminder_minute: state.reminderMinute,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
         });
       },
       loadFromSupabase: async () => {
@@ -116,17 +126,24 @@ export const useStore = create<AppState>()(
 
         if (error || !data) return;
 
-        // Fetch full verse objects for the history
+        // Fetch full verse objects for the history and current verse
         let history: Verse[] = [];
-        if (data.history_refs && data.history_refs.length > 0) {
+        let currentVerse: Verse | null = null;
+
+        const refsToFetch = [...(data.history_refs || [])];
+        if (data.current_verse_ref) {
+          refsToFetch.push(data.current_verse_ref);
+        }
+
+        if (refsToFetch.length > 0) {
           const { data: versesData } = await supabase
             .from('verses')
             .select('*')
-            .in('reference', data.history_refs);
+            .in('reference', refsToFetch);
 
           if (versesData) {
             // Reorder to match history_refs order
-            history = data.history_refs
+            history = (data.history_refs || [])
               .map((ref: string) => versesData.find((v: any) => v.reference === ref))
               .filter(Boolean)
               .map((v: any) => ({
@@ -139,14 +156,33 @@ export const useStore = create<AppState>()(
                 scrambled: v.scrambled,
                 fakeReferences: v.fake_references,
               }));
+
+            if (data.current_verse_ref) {
+              const v = versesData.find((v: any) => v.reference === data.current_verse_ref);
+              if (v) {
+                currentVerse = {
+                  reference: v.reference,
+                  text: v.text,
+                  explanation: v.explanation,
+                  bookContext: v.book_context,
+                  keywords: v.keywords,
+                  emojiText: v.emoji_text,
+                  scrambled: v.scrambled,
+                  fakeReferences: v.fake_references,
+                };
+              }
+            }
           }
         }
 
         set({
           currentDay: data.current_day,
           completedDays: data.completed_days,
+          currentVerse: currentVerse,
           unlockedAchievements: data.unlocked_achievements as AchievementId[],
           history: history,
+          reminderHour: data.reminder_hour,
+          reminderMinute: data.reminder_minute,
         });
       },
     }),
