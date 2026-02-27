@@ -66,6 +66,9 @@ const ReminderManager = () => {
   };
 
   const urlBase64ToUint8Array = (base64String: string) => {
+    if (!base64String) {
+      throw new Error('VAPID public key is missing or empty');
+    }
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
     const rawData = window.atob(base64);
@@ -83,6 +86,12 @@ const ReminderManager = () => {
 
     if (isIOS && !isStandalone) {
       alert('Atenção: No iPhone/iPad, as notificações só funcionam se você adicionar o app à sua Tela de Início. \n\nClique no botão de Compartilhar (quadrado com seta) e escolha "Adicionar à Tela de Início" antes de ativar os lembretes.');
+      return;
+    }
+
+    if (!VAPID_PUBLIC_KEY) {
+      console.error('ERRO: VITE_VAPID_PUBLIC_KEY não está definida no arquivo .env');
+      alert('Erro de configuração: Chave VAPID não encontrada. Por favor, reinicie o servidor de desenvolvimento.');
       return;
     }
 

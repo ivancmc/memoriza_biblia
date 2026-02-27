@@ -1,6 +1,6 @@
-import { serve } from "std/http/server.ts"
-import { createClient } from '@supabase/supabase-js'
-import webpush from 'web-push'
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7"
+import webpush from "npm:web-push@3.6.6"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -21,27 +21,32 @@ serve(async (req) => {
         const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY') ?? ''
         const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
 
+        if (!vapidPublicKey || !vapidPrivateKey) {
+            throw new Error('VAPID keys are not set in environment variables')
+        }
+
         webpush.setVapidDetails(
             'mailto:contato@memorizabiblia.com.br',
             vapidPublicKey,
             vapidPrivateKey
         )
 
-        const bodyData = await req.json()
+        let bodyData;
+        try {
+            bodyData = await req.json();
+        } catch (e) {
+            bodyData = {};
+        }
+
+        console.log('Request body:', JSON.stringify(bodyData));
+
         const { user_id, title, body, url, cron_trigger } = bodyData
 
         let subscriptions = []
 
         if (cron_trigger) {
-            // Logic for automatic sending via Cron
-            // Get current hour and minute in Brazilian time (or based on timezone)
-            // For simplicity, we'll use UTC and the user can adjust, or we can use the stored timezone.
-            // Better: Get all users who should receive a notification RIGHT NOW based on their timezone.
-
             const now = new Date();
-            // We'll iterate through timezones or just use UTC hour/minute comparison 
-            // with a slight buffer or specific logic.
-            // Here, let's assume the cron runs every minute.
+            console.log('Cron trigger activated. Current time (UTC):', now.toISOString());
 
             const { data, error } = await supabaseClient
                 .from('profiles')
@@ -54,35 +59,42 @@ serve(async (req) => {
             subscription
           )
         `)
-                // Filter profiles where reminder_hour/minute matches current time in their timezone
-                // This is complex in pure SQL without custom functions, so we'll fetch profiles 
-                // that have reminders set and filter in Deno for now, or use a clever SQL query.
                 .not('reminder_hour', 'is', null);
 
             if (error) throw error;
 
-            // Filter users whose current time matches their scheduled time
-            subscriptions = data.filter(profile => {
+            console.log(`Found ${data?.length || 0} users with reminders enabled.`);
+
+            subscriptions = (data || []).filter(profile => {
                 try {
-                    const userTime = new Intl.DateTimeFormat('en-US', {
+                    const userTimeParts = new Intl.DateTimeFormat('en-US', {
                         hour: 'numeric',
                         minute: 'numeric',
                         hour12: false,
                         timeZone: profile.timezone || 'America/Sao_Paulo'
                     }).formatToParts(now);
 
-                    const h = parseInt(userTime.find(p => p.type === 'hour')?.value || '0');
-                    const m = parseInt(userTime.find(p => p.type === 'minute')?.value || '0');
+                    const h = parseInt(userTimeParts.find(p => p.type === 'hour')?.value || '0');
+                    const m = parseInt(userTimeParts.find(p => p.type === 'minute')?.value || '0');
 
-                    return h === profile.reminder_hour && m === profile.reminder_minute;
+                    const matches = h === profile.reminder_hour && m === profile.reminder_minute;
+
+                    if (matches) {
+                        console.log(`Match found for user ${profile.id} (${profile.timezone}): ${h}:${m}`);
+                    } else {
+                        // Log only if it's close or for debugging small sets
+                        console.log(`Skipping user ${profile.id}: prefers ${profile.reminder_hour}:${profile.reminder_minute}, current is ${h}:${m} (${profile.timezone})`);
+                    }
+
+                    return matches;
                 } catch (e) {
                     console.error(`Invalid timezone for user ${profile.id}: ${profile.timezone}`);
                     return false;
                 }
-            }).flatMap(profile => profile.push_subscriptions);
+            }).flatMap(profile => profile.push_subscriptions || []);
 
         } else {
-            // Manual trigger for specific user or all
+            console.log('Manual trigger. user_id filter:', user_id || 'none');
             let query = supabaseClient
                 .from('push_subscriptions')
                 .select('subscription')
@@ -93,11 +105,14 @@ serve(async (req) => {
 
             const { data, error: fetchError } = await query
             if (fetchError) throw fetchError
-            subscriptions = data
+            subscriptions = data || []
         }
 
-        const notifications = (subscriptions || []).map(async (sub) => {
+        console.log(`Total subscriptions to notify: ${subscriptions.length}`);
+
+        const notifications = subscriptions.map(async (sub, index) => {
             try {
+                console.log(`Sending notification ${index + 1}/${subscriptions.length}...`);
                 await webpush.sendNotification(
                     sub.subscription,
                     JSON.stringify({
@@ -106,16 +121,18 @@ serve(async (req) => {
                         url: url || '/'
                     })
                 )
+                console.log(`Notification ${index + 1} sent successfully.`);
                 return { success: true }
             } catch (err) {
-                console.error('Error sending push:', err)
+                console.error(`Error sending push ${index + 1}:`, err)
                 if (err.statusCode === 410 || err.statusCode === 404) {
+                    console.log(`Removing expired subscription for user.`);
                     await supabaseClient
                         .from('push_subscriptions')
                         .delete()
                         .match({ subscription: sub.subscription })
                 }
-                return { success: false, error: err.message }
+                return { success: false, error: err.message, status: err.statusCode }
             }
         })
 
@@ -131,6 +148,7 @@ serve(async (req) => {
         )
 
     } catch (error) {
+        console.error('Edge Function Error:', error);
         return new Response(
             JSON.stringify({ error: error.message }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
