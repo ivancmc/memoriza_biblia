@@ -36,21 +36,25 @@ function App() {
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const [hasCheckedSupabase, setHasCheckedSupabase] = useState(false);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadFromSupabase();
+        await loadFromSupabase();
       }
+      setHasCheckedSupabase(true);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadFromSupabase();
+        await loadFromSupabase();
       }
+      setHasCheckedSupabase(true);
     });
 
     return () => subscription.unsubscribe();
@@ -58,7 +62,8 @@ function App() {
 
   // Sync state whenever it changes and user is logged in
   useEffect(() => {
-    if (user) {
+    // Only sync if we have a user and we've finished the initial check/load
+    if (user && hasCheckedSupabase) {
       const timeoutId = setTimeout(() => {
         syncToSupabase();
       }, 1000); // Debounce sync
@@ -71,7 +76,8 @@ function App() {
     currentVerse?.reference,
     reminderHour,
     reminderMinute,
-    user
+    user,
+    hasCheckedSupabase
   ]);
 
   useEffect(() => {

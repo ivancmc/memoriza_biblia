@@ -44,7 +44,7 @@ interface AppState {
 
 export const useStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentDay: 1,
       completedDays: [],
       currentVerse: null,
@@ -99,23 +99,34 @@ export const useStore = create<AppState>()(
       setSession: (session) => set({ session }),
       setReminderConfig: (hour, minute) => set({ reminderHour: hour, reminderMinute: minute }),
       syncToSupabase: async () => {
-        const state = useStore.getState();
+        const state = get();
         if (!state.user) return;
 
-        await supabase.from('profiles').upsert({
+        const syncData = {
           id: state.user.id,
           current_day: state.currentDay,
           completed_days: state.completedDays,
-          current_verse_ref: state.currentVerse?.reference,
+          current_verse_ref: state.currentVerse?.reference || null,
           history_refs: state.history.map(v => v.reference),
           unlocked_achievements: state.unlockedAchievements,
           reminder_hour: state.reminderHour,
           reminder_minute: state.reminderMinute,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        });
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          updated_at: new Date().toISOString()
+        };
+
+        console.log('Pushing sync to Supabase profile:', syncData.current_verse_ref);
+
+        const { error } = await supabase.from('profiles').upsert(syncData, { onConflict: 'id' });
+
+        if (error) {
+          console.error('Error syncing to Supabase:', error.message, error.details);
+        } else {
+          console.log('Sync successful for verse:', syncData.current_verse_ref);
+        }
       },
       loadFromSupabase: async () => {
-        const state = useStore.getState();
+        const state = get();
         if (!state.user) return;
 
         const { data, error } = await supabase
