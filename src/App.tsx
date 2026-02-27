@@ -114,10 +114,12 @@ function App() {
   };
 
   useEffect(() => {
-    if (!currentVerse) {
+    // Only auto-load a new verse if we've finished checking Supabase
+    // and we still don't have a current verse.
+    if (hasCheckedSupabase && !currentVerse && !isLoading) {
       loadNewVerse();
     }
-  }, []);
+  }, [hasCheckedSupabase, !!currentVerse]);
 
   useEffect(() => {
     if (lastUnlockedAchievement) {

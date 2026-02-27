@@ -221,6 +221,10 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'memorizakids-storage',
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => !['isLoading'].includes(key))
+        ) as AppState,
     }
   )
 );

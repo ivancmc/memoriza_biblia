@@ -10,7 +10,7 @@ export async function generateVerse(excludeReferences: string[] = []): Promise<V
       .select('*', { count: 'exact', head: true });
 
     if (excludeReferences.length > 0) {
-      query = query.not('reference', 'in', `(${excludeReferences.map(r => `"${r}"`).join(',')})`);
+      query = query.not('reference', 'in', excludeReferences);
     }
 
     const { count, error: countError } = await query;
@@ -24,7 +24,7 @@ export async function generateVerse(excludeReferences: string[] = []): Promise<V
         .select('*');
 
       if (excludeReferences.length > 0) {
-        fetchQuery = fetchQuery.not('reference', 'in', `(${excludeReferences.map(r => `"${r}"`).join(',')})`);
+        fetchQuery = fetchQuery.not('reference', 'in', excludeReferences);
       }
 
       const { data, error: fetchError } = await fetchQuery
@@ -46,7 +46,7 @@ export async function generateVerse(excludeReferences: string[] = []): Promise<V
       }
     }
   } catch (error) {
-    console.error('Error fetching from Supabase:', error);
+    console.error('Error fetching from Supabase in generateVerse:', error);
   }
 
   // 2. Fallback to offlineVerses if Supabase fails or returns nothing
