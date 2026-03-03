@@ -11,7 +11,7 @@ const ReminderManager = () => {
   const [isRequesting, setIsRequesting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
-  const [reminderConfig, setReminderConfig] = useState(() => {
+  const [reminderConfig, setReminderConfig] = useState<{ hour: number | null, minute: number | null }>(() => {
     const saved = localStorage.getItem(REMINDER_CONFIG_KEY);
     return saved ? JSON.parse(saved) : { hour: 9, minute: 0 };
   });
@@ -37,10 +37,15 @@ const ReminderManager = () => {
 
       if (error) throw error;
 
-      if (data && data.reminder_hour !== null) {
-        const newConfig = { hour: data.reminder_hour, minute: data.reminder_minute };
-        setReminderConfig(newConfig);
-        localStorage.setItem(REMINDER_CONFIG_KEY, JSON.stringify(newConfig));
+      if (data) {
+        if (data.reminder_hour !== null) {
+          const newConfig = { hour: data.reminder_hour, minute: data.reminder_minute };
+          setReminderConfig(newConfig);
+          localStorage.setItem(REMINDER_CONFIG_KEY, JSON.stringify(newConfig));
+        } else {
+          setReminderConfig({ hour: null, minute: null });
+          localStorage.removeItem(REMINDER_CONFIG_KEY);
+        }
       }
     } catch (error) {
       console.error('Error fetching reminder config:', error);
@@ -156,6 +161,45 @@ const ReminderManager = () => {
     }
   };
 
+  const handleDisableReminders = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            reminder_hour: null,
+            reminder_minute: null
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+      }
+
+      // Update local state even if not logged in (though push subscription remains)
+      setReminderConfig({ hour: null, minute: null });
+      localStorage.removeItem(REMINDER_CONFIG_KEY);
+
+      // We don't necessarily unsubscribe from Push service, 
+      // but the Edge Function won't send anything because reminder_hour is null.
+
+      setIsModalOpen(false);
+      alert('Lembretes desativados. Você não receberá mais notificações diárias.');
+
+      // Optional: If we want to fully unsubscribe from push:
+      /*
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+        setPermission('default');
+      }
+      */
+    } catch (error) {
+      console.error('Error disabling reminders:', error);
+      alert('Houve um erro ao desativar os lembretes no servidor.');
+    }
+  };
   const handleSaveTime = async (hour: number, minute: number) => {
     const newConfig = { hour, minute };
 
@@ -177,7 +221,7 @@ const ReminderManager = () => {
       setReminderConfig(newConfig);
       localStorage.setItem(REMINDER_CONFIG_KEY, JSON.stringify(newConfig));
       setIsModalOpen(false);
-      alert(`Ótimo! Agora você receberá lembretes todos os dias às ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}.`);
+      alert(`Ótimo! Agora você receberá lembretes todos os dias às ${hour.toString().padStart(2, '0')}h${minute.toString().padStart(2, '0')}m.`);
     } catch (error) {
       console.error('Error updating notification preference:', error);
       alert('Horário salvo localmente, mas houve um erro ao sincronizar com o servidor.');
@@ -193,16 +237,18 @@ const ReminderManager = () => {
       return {
         Icon: RefreshCw,
         text: 'Ativando...',
-        className: 'text-indigo-300 animate-spin',
+        className: 'text-indigo-300',
       };
     }
+
+    const hasReminders = permission === 'granted' && reminderConfig.hour !== null;
 
     switch (permission) {
       case 'granted':
         return {
-          Icon: Bell,
-          text: 'Lembretes Ativos',
-          className: 'text-green-400 hover:text-green-300',
+          Icon: hasReminders ? Bell : BellOff,
+          text: hasReminders ? 'Lembretes Ativos' : 'Lembretes Desativados',
+          className: hasReminders ? 'text-green-400 hover:text-green-300' : 'text-slate-400 hover:text-white',
         };
       case 'denied':
         return {
@@ -222,6 +268,7 @@ const ReminderManager = () => {
   if (!('Notification' in window)) return null;
 
   const { Icon, text, className } = getButtonState();
+  const hasReminders = permission === 'granted' && reminderConfig.hour !== null;
 
   return (
     <>
@@ -229,7 +276,7 @@ const ReminderManager = () => {
         onClick={handleToggleReminders}
         disabled={permission === 'denied' || isSubscribing}
         className={`group text-sm font-medium flex items-center gap-3 w-full transition-all ${className}`}
-        title={permission === 'granted' ? "Ajustar horário do lembrete" : ""}
+        title={permission === 'granted' ? "Ajustar lembretes" : ""}
       >
         <div className="relative flex-shrink-0">
           <Icon size={20} className={isSubscribing ? 'animate-spin' : ''} />
@@ -240,7 +287,7 @@ const ReminderManager = () => {
           )}
         </div>
         <span className="font-medium">
-          {permission === 'granted' ? `Lembretes · ${reminderConfig.hour.toString().padStart(2, '0')}:${reminderConfig.minute.toString().padStart(2, '0')}` : text}
+          {hasReminders ? `Lembretes · ${reminderConfig.hour.toString().padStart(2, '0')}h${reminderConfig.minute.toString().padStart(2, '0')}m` : text}
         </span>
       </button>
 
@@ -248,8 +295,10 @@ const ReminderManager = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveTime}
-        initialHour={reminderConfig.hour}
-        initialMinute={reminderConfig.minute}
+        onDisable={handleDisableReminders}
+        initialHour={reminderConfig.hour ?? 9}
+        initialMinute={reminderConfig.minute ?? 0}
+        showDisable={hasReminders}
       />
     </>
   );

@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Clock, X, Check, ChevronDown } from 'lucide-react';
+import { Clock, X, Check, ChevronDown, BellOff } from 'lucide-react';
 
 interface ReminderTimeModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (hour: number, minute: number) => void;
+    onDisable: () => void;
     initialHour: number;
     initialMinute: number;
+    showDisable: boolean;
 }
 
 const ReminderTimeModal: React.FC<ReminderTimeModalProps> = ({
     isOpen,
     onClose,
     onSave,
+    onDisable,
     initialHour,
-    initialMinute
+    initialMinute,
+    showDisable
 }) => {
     const [hour, setHour] = useState(initialHour);
     const [minute, setMinute] = useState(initialMinute);
@@ -23,7 +27,7 @@ const ReminderTimeModal: React.FC<ReminderTimeModalProps> = ({
     if (!isOpen) return null;
 
     const hours = Array.from({ length: 24 }, (_, i) => i);
-    const minutes = [0, 15, 30, 45];
+    const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
 
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
@@ -90,13 +94,25 @@ const ReminderTimeModal: React.FC<ReminderTimeModalProps> = ({
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => onSave(hour, minute)}
-                        className="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold rounded-2xl shadow-lg shadow-indigo-900/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-                    >
-                        <Check size={20} />
-                        Salvar horário
-                    </button>
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={() => onSave(hour, minute)}
+                            className="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold rounded-2xl shadow-lg shadow-indigo-900/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                        >
+                            <Check size={20} />
+                            Salvar horário
+                        </button>
+
+                        {showDisable && (
+                            <button
+                                onClick={onDisable}
+                                className="w-full py-3 px-6 bg-slate-800/50 hover:bg-red-900/20 text-indigo-300 hover:text-red-400 font-medium rounded-2xl transition-all flex items-center justify-center gap-2 border border-transparent hover:border-red-500/30"
+                            >
+                                <BellOff size={18} />
+                                Desativar lembretes
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>,
