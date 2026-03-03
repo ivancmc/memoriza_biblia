@@ -6,7 +6,7 @@ import { useStore, Verse } from './store';
 import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
-import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search } from 'lucide-react';
+import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search, Cloud, CloudOff } from 'lucide-react';
 import { motion } from 'motion/react';
 import { HistoryModal } from './components/HistoryModal';
 import ReminderManager from './components/ReminderManager';
@@ -20,10 +20,10 @@ import { supabase } from './services/supabase';
 
 function App() {
   const {
-    currentVerse, setVerse, isLoading, setLoading, resetProgress,
+    currentVerse, setVerse, isLoading, setLoading,
     history, lastUnlockedAchievement, clearLastUnlockedAchievement,
-    currentDay, completedDays,
-    user, setUser, setSession, loadFromSupabase, syncToSupabase
+    user, setUser, setSession, loadFromSupabase,
+    handleOnline, isSyncing, pendingSync,
   } = useStore();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
@@ -56,15 +56,11 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sync state whenever it changes and user is logged in
+  // Detecta quando o app volta a ficar online (importante para PWA offline)
   useEffect(() => {
-    if (user) {
-      const timeoutId = setTimeout(() => {
-        syncToSupabase();
-      }, 1000); // Debounce sync
-      return () => clearTimeout(timeoutId);
-    }
-  }, [history.length, completedDays?.length, currentDay, user]);
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [handleOnline]);
 
   useEffect(() => {
     if (isInstallAvailable) {
@@ -81,8 +77,7 @@ function App() {
   };
 
   const handleSearchMemorize = (verse: Verse) => {
-    setVerse(verse);
-    resetProgress();
+    setVerse(verse); // já reseta o ciclo internamente
   };
 
   const loadNewVerse = async () => {
@@ -90,8 +85,7 @@ function App() {
     try {
       const excludeRefs = history.map(v => v.reference);
       const verse = await generateVerse(excludeRefs);
-      setVerse(verse);
-      resetProgress();
+      setVerse(verse); // já reseta o ciclo internamente
     } catch (error) {
       console.error("Failed to load verse", error);
     } finally {
@@ -218,8 +212,22 @@ function App() {
             </div>
           </div>
 
-          {/* Right side: Novo Versículo + Auth Controls */}
+          {/* Right side: Indicador de sync + Novo Versículo + Auth Controls */}
           <div className="flex items-center gap-2">
+            {/* Indicador de sincronização (apenas para usuários logados) */}
+            {user && (
+              <div
+                title={isSyncing ? 'Sincronizando...' : pendingSync ? 'Dados pendentes — offline' : 'Sincronizado'}
+                className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all ${isSyncing
+                  ? 'text-yellow-400 animate-pulse'
+                  : pendingSync
+                    ? 'text-orange-400'
+                    : 'text-indigo-500'
+                  }`}
+              >
+                {pendingSync ? <CloudOff size={15} /> : <Cloud size={15} className={isSyncing ? 'animate-pulse' : ''} />}
+              </div>
+            )}
             {/* Novo Versículo */}
             <button
               onClick={loadNewVerse}
