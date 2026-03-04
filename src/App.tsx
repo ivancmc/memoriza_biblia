@@ -12,7 +12,7 @@ import { HistoryPage } from './components/HistoryPage';
 import ReminderManager from './components/ReminderManager';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import InstallPromptModal from './components/InstallPromptModal';
-import { AuthModal } from './components/AuthModal';
+import { AuthPage } from './components/AuthPage';
 import { ProfileModal } from './components/ProfileModal';
 import { SearchPage } from './components/SearchPage';
 import { supabase } from './services/supabase';
@@ -27,13 +27,13 @@ function App() {
   } = useStore();
   const [activeView, setActiveView] = useState<'home' | 'search' | 'history'>('home');
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
   const { isInstallAvailable, handleInstallClick } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -119,6 +119,10 @@ function App() {
       clearLastUnlockedAchievement();
     }
   }, [lastUnlockedAchievement, clearLastUnlockedAchievement]);
+
+  if (!user && !isGuest) {
+    return <AuthPage onGuestEntry={() => setIsGuest(true)} />;
+  }
 
   return (
     <div className="h-screen flex flex-col font-sans text-slate-100 selection:bg-pink-500 selection:text-white overflow-hidden max-w-full">
@@ -294,7 +298,7 @@ function App() {
               </div>
             ) : (
               <button
-                onClick={() => setIsAuthOpen(true)}
+                onClick={() => setIsGuest(false)}
                 className="flex items-center gap-1 md:gap-2 px-2.5 py-1.5 md:px-3 md:py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all text-xs md:text-sm shadow shadow-yellow-500/20 h-8 md:h-9"
               >
                 <LogIn size={14} className="md:w-4 md:h-4" />
@@ -341,7 +345,7 @@ function App() {
 
       <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
       <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+
       {user && <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />}
       <InstallPromptModal
         isOpen={showInstallModal}
