@@ -137,7 +137,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onBack, onStartMemorizat
                 <div className="flex items-start gap-2 mt-3 px-1">
                     <Info size={12} className="text-indigo-400 mt-0.5 flex-shrink-0" />
                     <p className="text-[10px] md:text-xs text-indigo-400 leading-relaxed">
-                        Pesquisando em <span className="text-yellow-400/80 font-medium">{offlineVerses.length}+ versículos</span>.{' '}
+                        Pesquisando em <span className="text-yellow-400/80 font-medium">{offlineVerses.length}+ versículos da NVI</span>.{' '}
                         {isOffline && <span className="text-orange-400">(Modo offline)</span>}
                     </p>
                 </div>

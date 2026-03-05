@@ -120,242 +120,245 @@ function App() {
     }
   }, [lastUnlockedAchievement, clearLastUnlockedAchievement]);
 
-  if (!user && !isGuest) {
-    return <AuthPage onGuestEntry={() => setIsGuest(true)} />;
-  }
-
   return (
-    <div className="h-screen flex flex-col font-sans text-slate-100 selection:bg-pink-500 selection:text-white overflow-hidden max-w-full">
+    <>
       <Toaster position="top-center" />
 
-      {/* Sidebar Overlay */}
-      {isSidebarOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      {!user && !isGuest ? (
+        <AuthPage onGuestEntry={() => setIsGuest(true)} />
+      ) : (
+        <div className="h-screen flex flex-col font-sans text-slate-100 selection:bg-pink-500 selection:text-white overflow-hidden max-w-full">
 
-      {/* Sidebar Drawer */}
-      <motion.aside
-        initial={{ x: '-100%' }}
-        animate={{ x: isSidebarOpen ? 0 : '-100%' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed top-0 left-0 h-full w-72 bg-indigo-950 border-r border-indigo-800 z-50 flex flex-col shadow-2xl"
-      >
-        {/* Sidebar Header */}
-        <div className="flex items-center gap-2 px-6 py-5 border-b border-indigo-800">
-          <BookOpen size={24} strokeWidth={2.5} className="text-yellow-400" />
-          <span className="text-lg font-bold text-white tracking-tight">MemorizaBíblia</span>
-        </div>
-
-        {/* Sidebar Items */}
-        <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
-          <div className="px-4 py-3 rounded-xl hover:bg-indigo-800/60 transition-all">
-            <ReminderManager />
-          </div>
-
-          <button
-            onClick={() => { setActiveView('search'); setIsSidebarOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${activeView === 'search' ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/40 ring-1 ring-indigo-500/20' : 'text-indigo-300 hover:bg-indigo-800/60 hover:text-white'}`}
-          >
-            <Search size={20} />
-            <span className="font-medium">Buscar Versículo</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveView('history'); setIsSidebarOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${activeView === 'history' ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/40 ring-1 ring-indigo-500/20' : 'text-indigo-300 hover:bg-indigo-800/60 hover:text-white'}`}
-          >
-            <History size={20} />
-            <span className="font-medium">Histórico</span>
-          </button>
-
-          {history.length > 0 && (
-            <button
-              onClick={handleRecall}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-yellow-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
-            >
-              <Sparkles size={20} />
-              <span className="font-medium">Relembre</span>
-            </button>
+          {/* Sidebar Overlay */}
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+              onClick={() => setIsSidebarOpen(false)}
+            />
           )}
 
-          <button
-            onClick={() => { setIsAchievementsOpen(true); setIsSidebarOpen(false); }}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+          {/* Sidebar Drawer */}
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: isSidebarOpen ? 0 : '-100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed top-0 left-0 h-full w-72 bg-indigo-950 border-r border-indigo-800 z-50 flex flex-col shadow-2xl"
           >
-            <Award size={20} />
-            <span className="font-medium">Conquistas</span>
-          </button>
-        </nav>
+            {/* Sidebar Header */}
+            <div className="flex items-center gap-2 px-6 py-5 border-b border-indigo-800">
+              <BookOpen size={24} strokeWidth={2.5} className="text-yellow-400" />
+              <span className="text-lg font-bold text-white tracking-tight">MemorizaBíblia</span>
+            </div>
 
-      </motion.aside>
-
-      {/* Header */}
-      <header className="bg-indigo-950/80 backdrop-blur-md border-b border-indigo-800 sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Hamburger Button */}
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="flex flex-col gap-1 md:gap-1.5 p-1.5 md:p-2 rounded-lg hover:bg-indigo-800/50 transition-colors"
-              aria-label="Abrir menu"
-            >
-              <span className="block w-4 md:w-5 h-0.5 bg-indigo-300 rounded-full" />
-              <span className="block w-4 md:w-5 h-0.5 bg-indigo-300 rounded-full" />
-              <span className="block w-4 md:w-5 h-0.5 bg-indigo-300 rounded-full" />
-            </button>
-
-            <button
-              onClick={() => setActiveView('home')}
-              className="flex items-center gap-1.5 md:gap-2 text-yellow-400 group focus:outline-none"
-            >
-              <BookOpen size={22} strokeWidth={2.5} className="md:w-7 md:h-7 group-hover:scale-110 transition-transform" />
-              <h1 className="text-lg md:text-xl font-bold tracking-tight text-white group-hover:text-yellow-400 transition-colors">MemorizaBíblia</h1>
-            </button>
-          </div>
-
-          {/* Right side: Indicador de sync + Novo Versículo + Auth Controls */}
-          <div className="flex items-center gap-1.5 md:gap-2">
-            {/* Indicador de sincronização (apenas para usuários logados) */}
-            {user && (
-              <div
-                title={isSyncing ? 'Sincronizando...' : pendingSync ? 'Dados pendentes — offline' : 'Sincronizado'}
-                className={`flex items-center justify-center w-6 h-6 md:w-7 md:h-7 rounded-lg transition-all ${isSyncing
-                  ? 'text-yellow-400 animate-pulse'
-                  : pendingSync
-                    ? 'text-orange-400'
-                    : 'text-indigo-500'
-                  }`}
-              >
-                {pendingSync ? <CloudOff size={13} className="md:w-[15px] md:h-[15px]" /> : <Cloud size={13} className={`md:w-[15px] md:h-[15px] ${isSyncing ? 'animate-pulse' : ''}`} />}
+            {/* Sidebar Items */}
+            <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
+              <div className="px-4 py-3 rounded-xl hover:bg-indigo-800/60 transition-all">
+                <ReminderManager />
               </div>
-            )}
-            {/* Novo Versículo */}
-            <button
-              onClick={loadNewVerse}
-              disabled={isLoading}
-              className="flex items-center justify-center p-2 md:px-3 md:py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-indigo-200 hover:text-white disabled:opacity-50 h-8 w-8 md:h-9 md:w-auto font-medium"
-            >
-              <RefreshCw size={14} className={`md:w-4 md:h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              <span className="hidden md:inline ml-2 text-sm">Novo Versículo</span>
-            </button>
 
-            {/* Auth Controls */}
-            {user ? (
-              <div className="relative">
-                {/* Avatar Button */}
+              <button
+                onClick={() => { setActiveView('search'); setIsSidebarOpen(false); }}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${activeView === 'search' ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/40 ring-1 ring-indigo-500/20' : 'text-indigo-300 hover:bg-indigo-800/60 hover:text-white'}`}
+              >
+                <Search size={20} />
+                <span className="font-medium">Buscar Versículo</span>
+              </button>
+
+              <button
+                onClick={() => { setActiveView('history'); setIsSidebarOpen(false); }}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${activeView === 'history' ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/40 ring-1 ring-indigo-500/20' : 'text-indigo-300 hover:bg-indigo-800/60 hover:text-white'}`}
+              >
+                <History size={20} />
+                <span className="font-medium">Histórico</span>
+              </button>
+
+              {history.length > 0 && (
                 <button
-                  onClick={() => setIsUserMenuOpen(v => !v)}
-                  className="flex items-center gap-1.5 md:gap-2 p-1 md:px-3 md:py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-white h-8 md:h-9"
-                  title="Minha conta"
+                  onClick={handleRecall}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-yellow-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
                 >
-                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-indigo-600 flex items-center justify-center text-yellow-400 flex-shrink-0">
-                    <UserIcon size={12} className="md:w-3.5 md:h-3.5" />
-                  </div>
-                  <span className="text-xs md:text-sm font-semibold hidden md:block max-w-[90px] truncate">
-                    {user.user_metadata?.display_name || user.email?.split('@')[0]}
-                  </span>
+                  <Sparkles size={20} />
+                  <span className="font-medium">Relembre</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => { setIsAchievementsOpen(true); setIsSidebarOpen(false); }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+              >
+                <Award size={20} />
+                <span className="font-medium">Conquistas</span>
+              </button>
+            </nav>
+
+          </motion.aside>
+
+          {/* Header */}
+          <header className="bg-indigo-950/80 backdrop-blur-md border-b border-indigo-800 sticky top-0 z-30">
+            <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {/* Hamburger Button */}
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="flex flex-col gap-1 md:gap-1.5 p-1.5 md:p-2 rounded-lg hover:bg-indigo-800/50 transition-colors"
+                  aria-label="Abrir menu"
+                >
+                  <span className="block w-4 md:w-5 h-0.5 bg-indigo-300 rounded-full" />
+                  <span className="block w-4 md:w-5 h-0.5 bg-indigo-300 rounded-full" />
+                  <span className="block w-4 md:w-5 h-0.5 bg-indigo-300 rounded-full" />
                 </button>
 
-                {/* Dropdown Menu */}
-                {isUserMenuOpen && (
-                  <>
-                    {/* Invisible overlay to close menu */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    />
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-indigo-900 border border-indigo-700 rounded-2xl shadow-2xl overflow-hidden z-50">
-                      <div className="px-4 py-3 border-b border-indigo-800">
-                        <p className="text-xs text-indigo-400 truncate">{user.email}</p>
+                <button
+                  onClick={() => setActiveView('home')}
+                  className="flex items-center gap-1.5 md:gap-2 text-yellow-400 group focus:outline-none"
+                >
+                  <BookOpen size={22} strokeWidth={2.5} className="md:w-7 md:h-7 group-hover:scale-110 transition-transform" />
+                  <h1 className="text-lg md:text-xl font-bold tracking-tight text-white group-hover:text-yellow-400 transition-colors">MemorizaBíblia</h1>
+                </button>
+              </div>
+
+              {/* Right side: Indicador de sync + Novo Versículo + Auth Controls */}
+              <div className="flex items-center gap-1.5 md:gap-2">
+                {/* Indicador de sincronização (apenas para usuários logados) */}
+                {user && (
+                  <div
+                    title={isSyncing ? 'Sincronizando...' : pendingSync ? 'Dados pendentes — offline' : 'Sincronizado'}
+                    className={`flex items-center justify-center w-6 h-6 md:w-7 md:h-7 rounded-lg transition-all ${isSyncing
+                      ? 'text-yellow-400 animate-pulse'
+                      : pendingSync
+                        ? 'text-orange-400'
+                        : 'text-indigo-500'
+                      }`}
+                  >
+                    {pendingSync ? <CloudOff size={13} className="md:w-[15px] md:h-[15px]" /> : <Cloud size={13} className={`md:w-[15px] md:h-[15px] ${isSyncing ? 'animate-pulse' : ''}`} />}
+                  </div>
+                )}
+                {/* Novo Versículo */}
+                <button
+                  onClick={loadNewVerse}
+                  disabled={isLoading}
+                  className="flex items-center justify-center p-2 md:px-3 md:py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-indigo-200 hover:text-white disabled:opacity-50 h-8 w-8 md:h-9 md:w-auto font-medium"
+                >
+                  <RefreshCw size={14} className={`md:w-4 md:h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  <span className="hidden md:inline ml-2 text-sm">Novo Versículo</span>
+                </button>
+
+                {/* Auth Controls */}
+                {user ? (
+                  <div className="relative">
+                    {/* Avatar Button */}
+                    <button
+                      onClick={() => setIsUserMenuOpen(v => !v)}
+                      className="flex items-center gap-1.5 md:gap-2 p-1 md:px-3 md:py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/70 transition-all text-white h-8 md:h-9"
+                      title="Minha conta"
+                    >
+                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-indigo-600 flex items-center justify-center text-yellow-400 flex-shrink-0">
+                        <UserIcon size={12} className="md:w-3.5 md:h-3.5" />
                       </div>
-                      <button
-                        onClick={() => { setIsProfileOpen(true); setIsUserMenuOpen(false); }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-indigo-200 hover:bg-indigo-800 hover:text-white transition-all text-left"
-                      >
-                        <UserIcon size={16} />
-                        Meu Perfil
-                      </button>
-                      <button
-                        onClick={async () => {
-                          setIsUserMenuOpen(false);
-                          await supabase.auth.signOut();
-                          toast.success('Até logo!');
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-pink-400 hover:bg-pink-500/10 transition-all text-left"
-                      >
-                        <LogOut size={16} />
-                        Sair
-                      </button>
-                    </div>
-                  </>
+                      <span className="text-xs md:text-sm font-semibold hidden md:block max-w-[90px] truncate">
+                        {user.user_metadata?.display_name || user.email?.split('@')[0]}
+                      </span>
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isUserMenuOpen && (
+                      <>
+                        {/* Invisible overlay to close menu */}
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-indigo-900 border border-indigo-700 rounded-2xl shadow-2xl overflow-hidden z-50">
+                          <div className="px-4 py-3 border-b border-indigo-800">
+                            <p className="text-xs text-indigo-400 truncate">{user.email}</p>
+                          </div>
+                          <button
+                            onClick={() => { setIsProfileOpen(true); setIsUserMenuOpen(false); }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-indigo-200 hover:bg-indigo-800 hover:text-white transition-all text-left"
+                          >
+                            <UserIcon size={16} />
+                            Meu Perfil
+                          </button>
+                          <button
+                            onClick={async () => {
+                              setIsUserMenuOpen(false);
+                              await supabase.auth.signOut();
+                              toast.success('Até logo!');
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-pink-400 hover:bg-pink-500/10 transition-all text-left"
+                          >
+                            <LogOut size={16} />
+                            Sair
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsGuest(false)}
+                    className="flex items-center gap-1 md:gap-2 px-2.5 py-1.5 md:px-3 md:py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all text-xs md:text-sm shadow shadow-yellow-500/20 h-8 md:h-9"
+                  >
+                    <LogIn size={14} className="md:w-4 md:h-4" />
+                    <span>Entrar</span>
+                  </button>
                 )}
               </div>
+            </div>
+          </header>
+
+          <main className="max-w-4xl mx-auto px-4 py-4 md:py-8 flex flex-col flex-1 overflow-y-auto overflow-x-hidden min-w-0 w-full">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center flex-1 space-y-4">
+                <div className="w-12 h-12 border-4 border-indigo-500 border-t-yellow-400 rounded-full animate-spin" />
+                <p className="text-indigo-300 font-medium animate-pulse">Viajando pelo universo bíblico...</p>
+              </div>
             ) : (
-              <button
-                onClick={() => setIsGuest(false)}
-                className="flex items-center gap-1 md:gap-2 px-2.5 py-1.5 md:px-3 md:py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-950 font-bold hover:from-yellow-300 hover:to-orange-400 transition-all text-xs md:text-sm shadow shadow-yellow-500/20 h-8 md:h-9"
-              >
-                <LogIn size={14} className="md:w-4 md:h-4" />
-                <span>Entrar</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-4 md:py-8 flex flex-col flex-1 overflow-y-auto overflow-x-hidden min-w-0 w-full">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center flex-1 space-y-4">
-            <div className="w-12 h-12 border-4 border-indigo-500 border-t-yellow-400 rounded-full animate-spin" />
-            <p className="text-indigo-300 font-medium animate-pulse">Viajando pelo universo bíblico...</p>
-          </div>
-        ) : (
-          <div className="flex flex-col min-h-full w-full">
-            {activeView === 'home' && (
               <div className="flex flex-col min-h-full w-full">
-                <div className="flex-none pt-2 pb-4 z-10">
-                  <DayNavigator />
-                </div>
+                {activeView === 'home' && (
+                  <div className="flex flex-col min-h-full w-full">
+                    <div className="flex-none pt-2 pb-4 z-10">
+                      <DayNavigator />
+                    </div>
 
-                <div className="flex items-start justify-center w-full pb-8">
-                  <VerseCard onNewVerse={loadNewVerse} />
-                </div>
+                    <div className="flex items-start justify-center w-full pb-8">
+                      <VerseCard onNewVerse={loadNewVerse} />
+                    </div>
+                  </div>
+                )}
+                {activeView === 'search' && (
+                  <SearchPage
+                    onBack={() => setActiveView('home')}
+                    onStartMemorization={handleSearchMemorize}
+                  />
+                )}
+                {activeView === 'history' && (
+                  <HistoryPage
+                    onBack={() => setActiveView('home')}
+                  />
+                )}
               </div>
             )}
-            {activeView === 'search' && (
-              <SearchPage
-                onBack={() => setActiveView('home')}
-                onStartMemorization={handleSearchMemorize}
-              />
-            )}
-            {activeView === 'history' && (
-              <HistoryPage
-                onBack={() => setActiveView('home')}
-              />
-            )}
-          </div>
-        )}
-      </main>
+          </main>
 
-      <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
-      <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
+          <RecallVerseModal verse={recallVerse} onClose={() => setRecallVerse(null)} />
+          <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
 
-      {user && <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />}
-      <InstallPromptModal
-        isOpen={showInstallModal}
-        onClose={() => setShowInstallModal(false)}
-        onInstall={handleInstallClick}
-      />
+          {user && <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />}
+          <InstallPromptModal
+            isOpen={showInstallModal}
+            onClose={() => setShowInstallModal(false)}
+            onInstall={handleInstallClick}
+          />
 
-      {/* Footer Decoration */}
-      <div className="fixed bottom-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-pink-500 to-indigo-500" />
-    </div>
+          {/* Footer Decoration */}
+          <div className="fixed bottom-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-pink-500 to-indigo-500" />
+        </div>
+      )}
+    </>
   );
 }
 

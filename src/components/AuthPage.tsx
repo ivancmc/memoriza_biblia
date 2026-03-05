@@ -11,22 +11,26 @@ interface AuthPageProps {
 }
 
 const translateAuthError = (message: string): string => {
+    const msg = message.toLowerCase();
     const errorMap: Record<string, string> = {
-        'User already registered': 'Este e-mail já está cadastrado.',
-        'Password should be at least 6 characters': 'A senha deve ter pelo menos 6 caracteres.',
-        'Invalid login credentials': 'E-mail ou senha incorretos.',
-        'Email not confirmed': 'E-mail não confirmado. Verifique sua caixa de entrada.',
-        'Invalid email or password': 'E-mail ou senha inválidos.',
-        'User not found': 'Usuário não encontrado.',
-        'Email already in use': 'Este e-mail já está em uso.',
-        'Too many requests': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
-        'Database error saving new user': 'Erro ao salvar o usuário. Tente novamente.',
-        'Signup requires a valid password': 'Por favor, insira uma senha válida.',
-        'Unable to validate email address: invalid format': 'Formato de e-mail inválido.',
+        'user already registered': 'Este e-mail já está cadastrado.',
+        'email already in use': 'Este e-mail já está em uso.',
+        'email already registered': 'Este e-mail já está cadastrado.',
+        'password should be at least 6 characters': 'A senha deve ter pelo menos 6 caracteres.',
+        'invalid login credentials': 'E-mail ou senha incorretos.',
+        'invalid email or password': 'E-mail ou senha inválidos.',
+        'email not confirmed': 'E-mail não confirmado. Verifique sua caixa de entrada.',
+        'user not found': 'Usuário não encontrado.',
+        'too many requests': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+        'database error saving new user': 'Erro ao salvar o usuário. Tente novamente.',
+        'signup requires a valid password': 'Por favor, insira uma senha válida.',
+        'unable to validate email address: invalid format': 'Formato de e-mail inválido.',
+        'invalid format': 'Formato de e-mail inválido.',
+        'new password should be different from the old password': 'A nova senha deve ser diferente da antiga.',
     };
 
     for (const [key, value] of Object.entries(errorMap)) {
-        if (message.includes(key)) return value;
+        if (msg.includes(key)) return value;
     }
     return 'Erro na autenticação. Tente novamente.';
 };
@@ -59,7 +63,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onGuestEntry }) => {
                 setView('login');
             }
         } catch (error: any) {
-            toast.error(translateAuthError(error.message || ''));
+            console.error('Auth error:', error);
+            const errorMessage = error.message || error.error_description || '';
+            toast.error(translateAuthError(errorMessage));
         } finally {
             setLoading(false);
         }
