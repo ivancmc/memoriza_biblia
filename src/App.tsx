@@ -7,7 +7,7 @@ import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
 import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search, Cloud, CloudOff, MessageSquare } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { HistoryPage } from './components/HistoryPage';
 import ReminderManager from './components/ReminderManager';
 import { usePWAInstall } from './hooks/usePWAInstall';
@@ -16,6 +16,7 @@ import { AuthPage } from './components/AuthPage';
 import { ProfileModal } from './components/ProfileModal';
 import { SearchPage } from './components/SearchPage';
 import { FeedbackModal } from './components/FeedbackModal';
+import { OnboardingModal, useOnboarding } from './components/OnboardingModal';
 import { supabase } from './services/supabase';
 
 
@@ -36,6 +37,7 @@ function App() {
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
+  const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -125,6 +127,10 @@ function App() {
   return (
     <>
       <Toaster position="top-center" />
+
+      <AnimatePresence>
+        {showOnboarding && <OnboardingModal onDismiss={dismissOnboarding} />}
+      </AnimatePresence>
 
       {!user && !isGuest ? (
         <AuthPage onGuestEntry={() => setIsGuest(true)} />
