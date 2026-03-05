@@ -73,7 +73,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, u
 
             setSent(true);
             toast.success('Feedback enviado! Obrigado 🙏');
-            setTimeout(onClose, 1800);
+            setTimeout(onClose, 5000);
         } catch (err: any) {
             console.error(err);
             toast.error('Erro ao enviar. Tente novamente.');
@@ -145,8 +145,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, u
                                             type="button"
                                             onClick={() => setCategory(cat.id)}
                                             className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-xs font-bold transition-all ${category === cat.id
-                                                    ? cat.activeColor + ' shadow-lg'
-                                                    : cat.color + ' hover:opacity-80'
+                                                ? cat.activeColor + ' shadow-lg'
+                                                : cat.color + ' hover:opacity-80'
                                                 }`}
                                         >
                                             {cat.icon}
