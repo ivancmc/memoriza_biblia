@@ -6,7 +6,7 @@ import { useStore, Verse } from './store';
 import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
-import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search, Cloud, CloudOff } from 'lucide-react';
+import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search, Cloud, CloudOff, MessageSquare } from 'lucide-react';
 import { motion } from 'motion/react';
 import { HistoryPage } from './components/HistoryPage';
 import ReminderManager from './components/ReminderManager';
@@ -15,6 +15,7 @@ import InstallPromptModal from './components/InstallPromptModal';
 import { AuthPage } from './components/AuthPage';
 import { ProfileModal } from './components/ProfileModal';
 import { SearchPage } from './components/SearchPage';
+import { FeedbackModal } from './components/FeedbackModal';
 import { supabase } from './services/supabase';
 
 
@@ -28,6 +29,7 @@ function App() {
   const [activeView, setActiveView] = useState<'home' | 'search' | 'history'>('home');
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [recallVerse, setRecallVerse] = useState<Verse | null>(null);
   const { isInstallAvailable, handleInstallClick } = usePWAInstall();
@@ -192,6 +194,14 @@ function App() {
                 <Award size={20} />
                 <span className="font-medium">Conquistas</span>
               </button>
+
+              <button
+                onClick={() => { setIsFeedbackOpen(true); setIsSidebarOpen(false); }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-300 hover:bg-indigo-800/60 hover:text-white transition-all text-left"
+              >
+                <MessageSquare size={20} />
+                <span className="font-medium">Enviar Feedback</span>
+              </button>
             </nav>
 
           </motion.aside>
@@ -348,6 +358,7 @@ function App() {
           <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
 
           {user && <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />}
+          <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} user={user} />
           <InstallPromptModal
             isOpen={showInstallModal}
             onClose={() => setShowInstallModal(false)}
