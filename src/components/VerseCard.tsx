@@ -36,7 +36,9 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
     setError(null);
 
     setReferenceOptions([]);
-    window.speechSynthesis.cancel();
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     setIsSpeaking(false);
 
     if (currentVerse) {
@@ -65,13 +67,17 @@ const VerseCard: React.FC<VerseCardProps> = ({ onNewVerse }) => {
   };
 
   const speakText = () => {
+    if (!window.speechSynthesis) return;
+
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(currentVerse.text);
+    if (!window.SpeechSynthesisUtterance) return;
+
+    const utterance = new window.SpeechSynthesisUtterance(currentVerse.text);
     utterance.lang = 'pt-BR';
     utterance.rate = 0.9;
 
