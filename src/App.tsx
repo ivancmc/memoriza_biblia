@@ -6,7 +6,7 @@ import { useStore, Verse } from './store';
 import { generateVerse } from './services/verseService';
 import DayNavigator from './components/DayNavigator';
 import VerseCard from './components/VerseCard';
-import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search, Cloud, CloudOff, MessageSquare } from 'lucide-react';
+import { BookOpen, RefreshCw, History, Sparkles, Award, LogIn, LogOut, User as UserIcon, Search, Cloud, CloudOff, MessageSquare, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { HistoryPage } from './components/HistoryPage';
 import ReminderManager from './components/ReminderManager';
@@ -15,6 +15,7 @@ import InstallPromptModal from './components/InstallPromptModal';
 import { AuthPage } from './components/AuthPage';
 import { ProfileModal } from './components/ProfileModal';
 import { SearchPage } from './components/SearchPage';
+import { AddVersePage } from './components/AddVersePage';
 import { FeedbackModal } from './components/FeedbackModal';
 import { OnboardingModal, useOnboarding } from './components/OnboardingModal';
 import { supabase } from './services/supabase';
@@ -27,7 +28,7 @@ function App() {
     user, setUser, setSession, loadFromSupabase,
     handleOnline, isSyncing, pendingSync,
   } = useStore();
-  const [activeView, setActiveView] = useState<'home' | 'search' | 'history'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'search' | 'history' | 'add'>('home');
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -38,6 +39,9 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
+
+  // Admin check — somente admin pode adicionar versículos
+  const isAdmin = user?.email === 'ivcmc@hotmail.com';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -208,6 +212,16 @@ function App() {
                 <MessageSquare size={20} />
                 <span className="font-medium">Enviar Feedback</span>
               </button>
+
+              {isAdmin && (
+                <button
+                  onClick={() => { setActiveView('add'); setIsSidebarOpen(false); }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${activeView === 'add' ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/40 ring-1 ring-indigo-500/20' : 'text-green-300 hover:bg-indigo-800/60 hover:text-white'}`}
+                >
+                  <Plus size={20} />
+                  <span className="font-medium">Adicionar Versículo</span>
+                </button>
+              )}
             </nav>
 
           </motion.aside>
@@ -353,6 +367,11 @@ function App() {
                 )}
                 {activeView === 'history' && (
                   <HistoryPage
+                    onBack={() => setActiveView('home')}
+                  />
+                )}
+                {activeView === 'add' && isAdmin && (
+                  <AddVersePage
                     onBack={() => setActiveView('home')}
                   />
                 )}
