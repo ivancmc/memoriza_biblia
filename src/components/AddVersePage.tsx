@@ -26,6 +26,9 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
 
   // Step 2 — Geração
   const [generatedVerse, setGeneratedVerse] = useState<Verse | null>(null);
+  const [editableExplanation, setEditableExplanation] = useState('');
+  const [editableBookContext, setEditableBookContext] = useState('');
+  const [editableEmojiText, setEditableEmojiText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [step, setStep] = useState<Step>('select');
@@ -78,6 +81,9 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
     try {
       const verse = await generateVerseContent(reference, verseText);
       setGeneratedVerse(verse);
+      setEditableExplanation(verse.explanation);
+      setEditableBookContext(verse.bookContext);
+      setEditableEmojiText(verse.emojiText);
       setStep('preview');
     } catch (err: any) {
       console.error('Erro ao gerar conteúdo:', err);
@@ -93,6 +99,9 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
     try {
       const verse = await generateVerseContent(reference, verseText);
       setGeneratedVerse(verse);
+      setEditableExplanation(verse.explanation);
+      setEditableBookContext(verse.bookContext);
+      setEditableEmojiText(verse.emojiText);
       toast.success('Conteúdo gerado novamente!');
     } catch (err: any) {
       console.error('Erro ao regerar:', err);
@@ -109,10 +118,10 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
       const { error } = await supabase.from('verses').insert({
         reference: generatedVerse.reference,
         text: generatedVerse.text,
-        explanation: generatedVerse.explanation,
-        book_context: generatedVerse.bookContext,
+        explanation: editableExplanation,
+        book_context: editableBookContext,
         keywords: generatedVerse.keywords,
-        emoji_text: generatedVerse.emojiText,
+        emoji_text: editableEmojiText,
         scrambled: generatedVerse.scrambled,
         fake_references: generatedVerse.fakeReferences,
       });
@@ -307,17 +316,19 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
 
                 <div className={`space-y-4 ${isGenerating ? 'opacity-40 pointer-events-none' : ''}`}>
                   {/* Explicação */}
-                  <PreviewField
+                  <EditableField
                     icon={<BookMarked size={14} />}
                     label="Explicação"
-                    value={generatedVerse.explanation}
+                    value={editableExplanation}
+                    onChange={setEditableExplanation}
                   />
 
                   {/* Contexto do Livro */}
-                  <PreviewField
+                  <EditableField
                     icon={<BookOpen size={14} />}
                     label="Contexto do Livro"
-                    value={generatedVerse.bookContext}
+                    value={editableBookContext}
+                    onChange={setEditableBookContext}
                   />
 
                   {/* Palavras-chave */}
@@ -336,10 +347,11 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
                   </div>
 
                   {/* Texto com Emojis */}
-                  <PreviewField
+                  <EditableField
                     icon={<Smile size={14} />}
                     label="Texto com Emojis"
-                    value={generatedVerse.emojiText}
+                    value={editableEmojiText}
+                    onChange={setEditableEmojiText}
                   />
 
                   {/* Palavras Embaralhadas */}
@@ -444,17 +456,20 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
   );
 };
 
-// Componente auxiliar para campos de preview
-function PreviewField({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+// Componente auxiliar para campos editáveis
+function EditableField({ icon, label, value, onChange }: { icon: React.ReactNode; label: string; value: string; onChange: (val: string) => void }) {
   return (
     <div>
       <div className="flex items-center gap-1.5 mb-1.5">
         <span className="text-yellow-400">{icon}</span>
         <span className="text-xs font-semibold text-indigo-300 uppercase tracking-wider">{label}</span>
       </div>
-      <p className="text-slate-300 text-sm md:text-base leading-relaxed bg-indigo-900/30 rounded-xl px-3 py-2 border border-indigo-700/20">
-        {value}
-      </p>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-indigo-900/30 text-slate-200 text-sm md:text-base leading-relaxed rounded-xl px-3 py-2 border border-indigo-700/40 focus:outline-none focus:border-yellow-400/60 focus:ring-1 focus:ring-yellow-400/30 transition-all resize-none min-h-[80px]"
+        rows={3}
+      />
     </div>
   );
 }
