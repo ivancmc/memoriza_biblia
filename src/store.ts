@@ -33,6 +33,7 @@ interface AppState extends PersistedData {
   session: Session | null;
   isLoading: boolean;
   isSyncing: boolean;
+  isAdmin: boolean;
 
   // Actions
   setCurrentDay: (day: number) => void;
@@ -80,6 +81,7 @@ export const useStore = create<AppState>()(
       user: null,
       session: null,
       pendingSync: false,
+      isAdmin: false,
 
       // --- Actions simples ---
       setCurrentDay: (day) => {
@@ -140,7 +142,7 @@ export const useStore = create<AppState>()(
 
       clearLastUnlockedAchievement: () => set({ lastUnlockedAchievement: null }),
 
-      setUser: (user) => set({ user }),
+      setUser: (user) => set({ user, ...(user === null ? { isAdmin: false } : {}) }),
       setSession: (session) => set({ session }),
 
       // --- Sincronização Supabase → Local ---
@@ -198,6 +200,7 @@ export const useStore = create<AppState>()(
             completedDays: data.completed_days ?? [],
             unlockedAchievements: (data.unlocked_achievements ?? []) as AchievementId[],
             history,
+            isAdmin: data.is_admin ?? false,
             // Só atualiza o verso atual se o Supabase tiver um salvo
             ...(currentVerse ? { currentVerse } : {}),
             pendingSync: false,
