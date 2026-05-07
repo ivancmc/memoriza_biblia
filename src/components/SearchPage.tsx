@@ -32,12 +32,31 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onBack, onStartMemorizat
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
+    const [totalCount, setTotalCount] = useState<number>(offlineVerses.length);
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Focus input when page loads
     useEffect(() => {
         setTimeout(() => inputRef.current?.focus(), 100);
+
+        const fetchTotalCount = async () => {
+            if (navigator.onLine) {
+                try {
+                    const { count, error } = await supabase
+                        .from('verses')
+                        .select('*', { count: 'exact', head: true });
+
+                    if (!error && count !== null) {
+                        setTotalCount(count);
+                    }
+                } catch (err) {
+                    console.error('Error fetching total count:', err);
+                }
+            }
+        };
+
+        fetchTotalCount();
     }, []);
 
     const performSearch = useCallback(async (searchTerm: string) => {
@@ -137,7 +156,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onBack, onStartMemorizat
                 <div className="flex items-start gap-2 mt-3 px-1">
                     <Info size={12} className="text-indigo-400 mt-0.5 flex-shrink-0" />
                     <p className="text-[10px] md:text-xs text-indigo-400 leading-relaxed">
-                        Pesquisando em <span className="text-yellow-400/80 font-medium">{offlineVerses.length}+ versículos da NVI</span>.{' '}
+                        Pesquisando em <span className="text-yellow-400/80 font-medium">
+                            {(!isOffline && totalCount > 0) ? totalCount : offlineVerses.length} versículos da NVI
+                        </span>.{' '}
                         {isOffline && <span className="text-orange-400">(Modo offline)</span>}
                     </p>
                 </div>
