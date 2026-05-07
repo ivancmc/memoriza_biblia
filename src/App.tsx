@@ -26,7 +26,7 @@ function App() {
     currentVerse, setVerse, isLoading, setLoading,
     history, lastUnlockedAchievement, clearLastUnlockedAchievement,
     user, setUser, setSession, loadFromSupabase,
-    handleOnline, isSyncing, pendingSync,
+    handleOnline, isSyncing, pendingSync, isAdmin: isAdminFromStore,
   } = useStore();
   const [activeView, setActiveView] = useState<'home' | 'search' | 'history' | 'add'>('home');
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
@@ -41,7 +41,7 @@ function App() {
   const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
   // Admin check — somente admin pode adicionar versículos
-  const isAdmin = user?.email === 'ivcmc@hotmail.com';
+  const isAdmin = isAdminFromStore;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

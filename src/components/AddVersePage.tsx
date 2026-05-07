@@ -93,7 +93,7 @@ export const AddVersePage: React.FC<AddVersePageProps> = ({ onBack }) => {
     try {
       const verse = await generateVerseContent(reference, verseText);
       setGeneratedVerse(verse);
-      toast.success('Conteúdo regenerado!');
+      toast.success('Conteúdo gerado novamente!');
     } catch (err: any) {
       console.error('Erro ao regerar:', err);
       toast.error(err?.message || 'Erro ao regerar conteúdo');
